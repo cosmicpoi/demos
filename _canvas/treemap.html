@@ -1,0 +1,433 @@
+<html>
+<head>
+	<title>Squarified Treemap</title>
+	<style type="text/css">
+	canvas {
+		border:1px solid black;
+	}
+	</style>
+</head>
+<body>
+
+<canvas id="canvas" width="800" height="600"></canvas>
+
+<script type="text/javascript">
+var TYPE_LEAF = 1;
+var TYPE_PARENT = 0;
+
+// can't be bothered to write the file read script (i would use php)
+// var leafinput = [
+// [0, 700],
+// [1, 800],
+// [2, 400],
+// [3, 300],
+// [5, 200],
+// [6, 100],
+// [8, 100],
+// [9, 100],
+// [10, 100]
+// ];
+
+// var edgeinput =[
+// [7, 0],
+// [7, 1],
+// [7, 2],
+// [7, 3],
+// [4, 5],
+// [4, 6],
+// [4, 9],
+// [4, 10]
+// ];
+
+var leafinput  = [
+[10, 700],
+[11, 600],
+[12, 400],
+[13, 300],
+[14, 200],
+[15, 200],
+[16, 100],
+[20, 700],
+[21, 600],
+[22, 400],
+[23, 300],
+[24, 200],
+[25, 200],
+[26, 100],
+[30, 700],
+[31, 600],
+[32, 400],
+[33, 300],
+[34, 200],
+[35, 200],
+[36, 100],
+[40, 700],
+[41, 600],
+[42, 400],
+[43, 300],
+[44, 200],
+[45, 200],
+[46, 100],
+[50, 700],
+[51, 600],
+[52, 400],
+[53, 300],
+[54, 200],
+[55, 200],
+[56, 100],
+[60, 700],
+[61, 600],
+[62, 400],
+[63, 300],
+[64, 200],
+[65, 200],
+[66, 100],
+[70, 700],
+[71, 600],
+[72, 400],
+[73, 300],
+[74, 200],
+[75, 200],
+[76, 100]
+];
+
+var edgeinput = [
+[0, 1],
+[0, 2],
+[0, 3],
+[0, 4],
+[0, 5],
+[0, 6],
+[0, 7],
+[1, 10],
+[0, 11],
+[0, 12],
+[0, 13],
+[0, 14],
+[0, 15],
+[0, 16],
+[2, 20],
+[2, 21],
+[2, 22],
+[2, 23],
+[2, 24],
+[2, 25],
+[2, 26],
+[3, 30],
+[3, 31],
+[3, 32],
+[3, 33],
+[3, 34],
+[3, 35],
+[3, 36],
+[4, 40],
+[4, 41],
+[4, 42],
+[4, 43],
+[4, 44],
+[4, 45],
+[4, 46],
+[5, 50],
+[5, 51],
+[5, 52],
+[5, 53],
+[5, 54],
+[5, 55],
+[5, 56],
+[6, 60],
+[6, 61],
+[6, 62],
+[6, 63],
+[6, 64],
+[6, 65],
+[6, 66],
+[7, 70],
+[7, 71],
+[7, 72],
+[7, 73],
+[7, 74],
+[7, 75],
+[7, 76]
+];
+
+var leaflen = leafinput.length;
+var edgelen = edgeinput.length;
+
+//calculate values
+var nodes = [];
+for(var i=0; i<leaflen; i++) {
+	nodes[""+leafinput[i][0]] = { value:leafinput[i][1], type:TYPE_LEAF, 
+		children:undefined, seen:false};
+}
+
+//javascript passes all objects by reference, so we can create a rooted tree
+var tree = {};
+
+for(var i=0; i<edgelen; i++) {
+	//the first one is always the parent
+	var parent = ""+edgeinput[i][0];
+	var child = ""+edgeinput[i][1];
+
+	//look for the parent. if it's not in the node list, add it.
+	if(!nodes[parent]) {
+		tree[parent] = { value:0, children:{}}
+		//now create a reference in the node list to the parent
+		//this reference is for access if exceptions pop up - we don't want to scan the whole tree
+		nodes[parent] = tree[parent]; 
+	}
+	//now we know that the parent is in the node list
+
+	//if the child doesn't exist yet (it's going to be  parent later), just defer execution to the end
+	if(!nodes[child]) {
+		edgeinput.push(edgeinput[i]);
+		edgeinput.splice(i, 1);
+		i--;
+	} else {
+		//if the child is a leaf, add the child to the parent
+		if(!nodes[child].children) {
+			nodes[parent].children[child]=nodes[child];
+		}
+		//if the child is a parent, do the same thing, but also remove the child from the root level
+		if(nodes[child].children) {
+			nodes[parent].children[child]=nodes[child];
+
+			if(tree[child]) {
+				delete tree[child];
+			}
+		}
+	}
+}
+
+//evaluate elements of the tree to determine parent weights
+function getValueOf(myNode) {
+	myNode.seen = true;
+	if(myNode.value) return myNode.value;
+	else {
+		var sum =0;
+		for(childname in myNode.children) {
+			var child = myNode.children[""+childname];
+			var childValue = getValueOf(child);
+			child.value = childValue;
+			sum+=child.value;
+		} 
+		myNode.value = sum;
+		return sum;
+	}
+}
+for(branch in tree) {
+	getValueOf(tree[""+branch]);
+}
+//outliers
+for(node in nodes) {
+	if(!nodes[""+node].seen) {
+		tree[""+node] = nodes[""+node];
+		tree[""+node].seen = true;
+	}
+}
+
+//yay, now we have a completed tree object
+//squarified treemap part
+
+
+//define a rectangle type:
+// it has a start, stop, height and width
+function Rectangle(x, y, width, height) {
+	this.x = x;
+	this.y = y;
+	this.width = width;
+	this.height = height;
+
+	this.toString = function() {
+		return "rect at ("+x+", "+y+") dim ["+width+", "+height+"]";
+	};
+	this.lowerRight = function() {
+		return [this.x+this.width, this.y+this.height];
+	};
+	this.centroid = function() {
+		return {x:this.x+0.5*this.width, y:this.y+0.5*this.height};
+	}
+}
+
+// function MapNode(x, y, width, height) {
+// 	this.rect = new Rectangle(x, y, width, height);
+// 	this.name = "";
+// 	this.value = 0;
+// 	this.children = [];
+// }
+
+// var treenodes = []; //pointers to mapnodes so that we can draw everything at the end
+// var treemap = new MapNode();
+
+// for(branch in tree) {
+
+// }
+////////
+var c = {canvas:document.getElementById("canvas"), height: 600, width:800};
+var ctx = c.canvas.getContext('2d');
+
+//////////////////////
+// var canvasArea = c.height*c.width;
+
+var valueList = [1000, 500, 400, 300, 200, 100, 50, 10, 1, 1, 1]; //let's run sample code just on these.
+
+ctx.lineWidth = 2;
+ctx.strokeStyle = "black";
+
+function drawRect(rect) {
+	ctx.globalAlpha = 0.1;
+	var colorstr = '#'+(Math.random()*0xFFFFFF<<0).toString(16);
+	ctx.fillStyle = colorstr;
+	ctx.beginPath();
+	ctx.rect(rect.x, rect.y, rect.width, rect.height);
+	ctx.stroke();
+	ctx.fill();
+}
+ctx.font = "30px Arial";
+function drawText(text, loc) {
+	ctx.globalAlpha = 1.0;
+	ctx.beginPath();
+	ctx.fillStyle="black";
+	ctx.fillText(text,loc.x,loc.y);
+}
+
+function dot(dim1, dim2) {
+	return dim1[0]*dim2[0]+dim1[1]*dim2[1];
+}
+function scale(dim, scalar) {
+	return [dim[0]*scalar, dim[1]*scalar];
+}
+function plus(dim1, dim2) {
+	return [dim1[0]+dim2[0],dim1[1]+dim2[1]];
+}
+function normAspect(rect) {
+	return Math.abs(Math.log(rect.height/rect.width));
+}
+function squarify(blankRect, myTree, myKeys) {
+	console.log("starting a new squarify on "+blankRect + "with keys "+myKeys);
+
+	if(myKeys.length == 1) { //if it's a trivial tree just draw it
+		if(!myTree[myKeys[0]].children) {
+			drawRect(blankRect); drawText(myKeys[0], blankRect.centroid());
+		} else {
+			squarify(blankRect, myTree[myKeys[0]].children, Object.keys(myTree[myKeys[0]].children));
+		}
+		return;
+	}
+
+	var keys = myKeys.sort(function(key1, key2) { return myTree[key2].value-myTree[key1].value; });
+
+	var totalValue = 0;
+	for(var i =0; i<myKeys.length; i++) {
+		totalValue+=myTree[myKeys[i]].value;
+	}
+	console.log("total value of tree is "+totalValue);
+
+	var blankDim = [blankRect.width, blankRect.height];
+	var canvasArea = blankRect.width*blankRect.height;
+
+	//determine which side (x or y) is longer / shorter
+	var offset = (blankRect.height > blankRect.width) + 0;
+	var shorterSide = [(0+offset) % 2, (1+offset) % 2];
+	var longerSide =  [(1+offset) % 2, (0+offset) % 2];
+
+
+	//stuff that changes during the loop
+	var oldRect = new Rectangle(0, 0, 1, 0); //used for comparison for escape condition
+	var operatingRect; //rectangle of this current operating loop
+	var sumValues = 0; //sum of values we've seen so far
+
+	for(var i=0; i<keys.length; i++) {
+		console.log("currently looking at node "+keys[i]);
+		console.log("it has value "+myTree[keys[i]].value);
+		//calculate the dimensions of the half being operated on
+		sumValues += myTree[keys[i]].value;
+		console.log("aggregate value "+sumValues);
+
+
+		var rectArea = canvasArea*sumValues/totalValue; //area of operating rect
+		console.log("the area of the operating rect is "+rectArea);
+
+		var shortLength = dot(shorterSide, blankDim); //length of short side of op rect
+		var longLength = rectArea/shortLength;        //length of long side of op rect
+
+		var opdims = plus(scale(shorterSide, shortLength), scale(longerSide, longLength));
+		operatingRect = new Rectangle(blankRect.x, blankRect.y, opdims[0], opdims[1]);
+		//seems OK up to here?
+
+		console.log("operating rect is "+operatingRect);
+		// drawRect(operatingRect);
+
+		//get the aspect ratio of the new smallest rect
+		var areaRatio = myTree[keys[i]].value/sumValues;
+		var onShortSide = shortLength * areaRatio;
+		var fixedSide = (areaRatio*rectArea) / onShortSide;
+
+		var newdims = plus(scale(shorterSide, onShortSide), scale(longerSide, fixedSide));
+
+
+		newRect = new Rectangle(blankRect.x, blankRect.y, newdims[0], newdims[1]);
+
+		if(normAspect(newRect) <= normAspect(oldRect) && i<keys.length-1) {
+			console.log('ratio is better');
+			oldRect = newRect;
+			// drawRect(new Rectangle(blankRect.x, blankRect.y, newdims[0], newdims[1]));
+		} else {
+			if(i == keys.length-1) {
+
+			}
+			console.log('ratio is worse');
+			//draw all the rects up to the optimal index
+			var startPoint = [blankRect.x, blankRect.y];
+			console.log("drawing from starting point " + startPoint);
+			var fixedLength = fixedSide;
+			console.log("the length of the fixed side is "+fixedLength);
+			for(var j=0; j<=i; j++) {
+				var varLength = (myTree[keys[j]].value/sumValues)*shortLength;
+				console.log("the length of the variable side is " + varLength);
+
+				var currentDims = plus(scale(longerSide, fixedLength), scale(shorterSide, varLength));
+
+				var currentRect = 
+					new Rectangle(startPoint[0], startPoint[1], currentDims[0], currentDims[1]);
+				
+				//if it has children do it again
+				if(myTree[keys[j]].children) {
+					console.log(j, keys[j], myTree[keys[j]]);
+					console.log("children are", myTree[keys[j]].children);
+					console.log("keys", Object.keys(myTree[keys[j]].children));
+					squarify(currentRect,myTree[keys[j]].children, Object.keys(myTree[keys[j]].children));
+				} else {
+					drawRect(currentRect);
+				}
+				// drawRect(currentRect);
+				drawText(keys[j], currentRect.centroid());
+				console.log('drawing '+keys[j]+" on "+currentRect);
+
+				startPoint = plus(startPoint, scale(shorterSide, varLength));
+			}
+			//squarify again with the remaining values and canvas
+			var remainingKeys = keys.slice(-(keys.length-1-i));
+			//finding the new canvas: the shorter side stays the same, the longer side gets a bit shorter
+			var newcanvasdims = plus(scale(shorterSide, shortLength), scale(longerSide, dot(longerSide, blankDim)-fixedLength));
+			var newcanvaspos = plus(blankRect.lowerRight(), scale(newcanvasdims, -1));
+			var newCanvas = new Rectangle(newcanvaspos[0], newcanvaspos[1], newcanvasdims[0], newcanvasdims[1]);
+
+			console.log(newCanvas, remainingKeys);
+
+
+			if(i != keys.length-1) {
+				console.log("do it again");
+				squarify(newCanvas,myTree, remainingKeys);
+			}
+
+			break;//break out of the loop
+		}
+	}
+}
+squarify(new Rectangle(0, 0, 800, 600), tree, Object.keys(tree));
+// squarify(new Rectangle(0, 0, 800, 600), tree["7"].children, Object.keys(tree["7"].children));
+
+
+</script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<html>
+<head>
+	<title></title>
+	<style type="text/css">
+	canvas {
+		outline:1px solid black;
+	}
+	</style>
+</head>
+<body>
+
+<canvas id="canvas" width="800" height="600">
+</canvas>
+
+<script type="text/javascript">
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+ctx.fillStyle="#000000";
+
+//initialize an empty array
+var data=[];
+for(var i=0; i<60; i++) {
+	var array=[];
+	for(var j=0; j<80; j++) {
+		array.push(0);
+	}
+	data.push(array);
+}
+
+
+//set seed value
+data[0][40]=1;
+//set some rule in binary: this one is 0011110 = 30
+/******************* this is the part you'll want to change to play with the program ***///
+var rule = [0,0,0,1,1,1,1,0]; 
+
+
+//this is where all the magic happens
+for(var i=1; i<data.length; i++) { //iterate through all rows but the first
+	for(var j=1; j<data[i].length-1; j++) { //iterate through all columns
+		//convert the adjacent 3 cells in the previous row into the nth digit
+
+		//********** you can change this part too *********//
+		var digit=1;
+		if(data[i-1][j-1]==1) digit+=4;
+		if(data[i-1][j]==1)   digit+=2;
+		if(data[i-1][j+1]==1) digit+=1;
+
+		//get the nth digit of the rule: if that bit is 1, set the current cell to 1
+		if(rule[8-digit]==1) data[i][j]=1;
+	}
+}
+
+// draw the grid
+for(var i=0; i<data.length; i++) {
+	for(var j=0; j<data[i].length; j++) {
+		if(data[i][j]==1) {
+			ctx.beginPath();
+			ctx.rect(j*10,i*10,10,10);
+			ctx.fill();
+		}
+	}
+}
+
+</script>
+</body>
+</html>

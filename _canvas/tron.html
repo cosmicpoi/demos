@@ -1,0 +1,203 @@
+<html>
+<head>
+	<title>Tron</title>
+	<style type="text/css">
+		.container {
+			/*width: 800px;*/
+			/*height:600px;*/
+			margin: 0 auto;
+		}
+		canvas {
+			border:1px solid black;
+			margin:0 auto;
+		}
+	</style>
+	<script src="./js/jquery.min.js"></script>
+</head>
+<body>
+<div class="container">
+		<canvas id="canvas" width="800" height="600">
+		</canvas>
+	</div>
+
+	<script type="text/javascript">
+	
+      var canvas = document.getElementById("canvas"),
+      context = canvas.getContext("2d");
+      var gamewidth=80;
+      var gameheight=60;
+      var cellsize=10;
+
+      window.requestAnimFrame = (function(callback) {
+        return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
+        function(callback) {
+          window.setTimeout(callback, 1000 / 60);
+        };
+      })();
+
+      var p1Array = new Array();
+      var p2Array = new Array();
+
+      for(var i=0; i<gameheight; i++) {
+      	p1Array.push(new Array());
+      	p2Array.push(new Array());
+      	for(var j=0; j<gamewidth; j++) {
+      		p1Array[i][j]=0;
+      		p2Array[i][j]=0;
+      	}
+      }
+      var framecount=0;
+      //up, right, down, left: 0, 1, 2, 3
+      const UP=0;
+      const RIGHT=1;
+      const DOWN=2;
+      const LEFT=3;
+      function Player(xpos,ypos,d) {
+      	this.x=xpos;
+      	this.y=ypos;
+      	this.direction=d;
+      }
+      var player1=new Player(20, 20, -1);
+      var player2=new Player(10, 20, -1);
+      p1Array[player1.x][player1.y]=1;
+      p2Array[player2.x][player2.y]=1;
+
+
+
+      function fillCell(x, y, context, color) {
+		context.beginPath();
+        context.rect(x*cellsize, y*cellsize, cellsize, cellsize);
+        context.fillStyle = color;
+        context.fill();
+        context.lineWidth = 2
+        context.strokeStyle = 'black';
+        context.stroke();
+      }
+      //up 38
+      //right 39
+      //down 40
+      //left 37
+      //w 87
+      //d 68
+      //s 83
+      //a 65
+      var hasp1Moved=false;
+      var hasp2Moved=false;
+      function onKeyDown(evt) {
+		  if(evt.keyCode==38) {
+		  	if(player1.direction!=DOWN) player1.direction=UP; hasp1Moved=true;
+		  }
+		  if(evt.keyCode==39) {
+		  	if(player1.direction!=LEFT) player1.direction=RIGHT; hasp1Moved=true;
+		  }
+		  if(evt.keyCode==40) {
+		  	if(player1.direction!=UP) player1.direction=DOWN; hasp1Moved=true;
+		  }
+		  if(evt.keyCode==37) {
+		  	if(player1.direction!=RIGHT) player1.direction=LEFT; hasp1Moved=true;
+		  }
+		  if(evt.keyCode==87) {
+		  	if(player2.direction!=DOWN) player2.direction=UP; hasp2Moved=true;
+		  }
+		  if(evt.keyCode==68) {
+		  	if(player2.direction!=LEFT) player2.direction=RIGHT; hasp2Moved=true;
+		  }
+		  if(evt.keyCode==83) {
+		  	if(player2.direction!=UP) player2.direction=DOWN; hasp2Moved=true;
+		  }
+		  if(evt.keyCode==65) {
+		  	if(player2.direction!=RIGHT) player2.direction=LEFT; hasp2Moved=true;
+		  }
+	  }
+	  $(document).keydown(onKeyDown);
+      function animate(canvas, context) {
+      	//only run 10 times a second
+
+        if(framecount==6) {
+        	//update arrays
+        	var p1d=player1.direction;
+        	var p2d=player2.direction;
+        	var dx=0;
+        	var dy=0;
+
+        	if(p1d==UP) {
+        		dx=0;
+        		dy=-1;
+        	} else if(p1d==DOWN) {
+        		dx=0;
+        		dy=1;
+        	} else if(p1d==LEFT) {
+        		dx=-1;
+        		dy=0;
+        	} else if(p1d==RIGHT) {
+        		dx=1;
+        		dy=0;
+        	}
+        	var newX=player1.x+dx;
+        	var newY=player1.y+dy;
+        	//check for collisions
+        	if((p2Array[newX][newY]==1 || p1Array[newX][newY]==1) && hasp1Moved) {
+        		alert("p1 lose!");
+        	}
+        	player1.x=newX;
+        	player1.y=newY;
+        	p1Array[newX][newY]=1;
+
+        	dx=0;
+        	dy=0;
+        	if(p2d==UP) {
+        		dx=0;
+        		dy=-1;
+        	} else if(p2d==DOWN) {
+        		dx=0;
+        		dy=1;
+        	} else if(p2d==LEFT) {
+        		dx=-1;
+        		dy=0;
+        	} else if(p2d==RIGHT) {
+        		dx=1;
+        		dy=0;
+        	}
+        	newX=player2.x+dx;
+        	newY=player2.y+dy;
+        	//check for collisions
+        	if((p2Array[newX][newY]==1 || p1Array[newX][newY]==1) && hasp2Moved) {
+        		alert("p2 lose!");
+        	}
+
+        	player2.x=newX;
+        	player2.y=newY;
+        	p2Array[newX][newY]=1;
+
+        	
+        	//clear
+        	context.clearRect(0, 0, canvas.width, canvas.height);
+        	//draw
+	        for(var i=0; i<p1Array.length; i++) {
+	        	for(var j=0; j<p1Array[0].length; j++) {
+	        		if(p1Array[i][j]==1) {
+	        			fillCell(i,j,context,"#FF0000"); //p1 is red
+	        		} 
+	        		if(p2Array[i][j]==1) {
+	        			fillCell(i,j,context,"#0000FF"); //p2 is blue
+	        		}
+	        	}
+	        }
+	        framecount=0;
+    	}
+    	framecount++;
+
+        // request new frame
+        requestAnimFrame(function() {
+          animate(canvas, context);
+        });
+      }
+
+      setTimeout(function() {
+        animate(canvas, context);
+      }, 100);
+          
+          
+    </script>
+</body>
+</html>

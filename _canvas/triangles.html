@@ -1,0 +1,219 @@
+<html>
+<head>
+	<title></title>
+	<style type="text/css">
+* {
+  margin:0;
+  padding:0;
+}
+canvas {
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+}
+	</style>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+
+<script type="text/javascript">
+canvas = document.getElementById("canvas");
+ctx = canvas.getContext('2d');
+canv = $("canvas");
+canv.unbind();
+canv.attr('width',$('body').width());
+canv.attr('height',$('body').height());
+ctx.translate(canvas.width/2, canvas.height/2);
+
+
+triangles = [];
+
+mouse = {x:0, y:0};
+$("#canvas").mousemove(function(event) {
+	mouse.x = event.pageX-$(this).offset().left;
+    mouse.y = event.pageY-$(this).offset().top;
+});
+drs = [
+(scale) => ((time, click) => {
+    if(click) return scale*(0.01);
+    else return scale*(0.02+0.01*Math.sin(0.1*time));
+}),
+(scale) => ((time, click) => {
+    if(click) return 0.01;
+    else {
+        if(time % 400 > 200) {
+            return scale*(0.01*Math.sqrt(0.1*(time% 400)));
+        } else {
+            return scale*(-0.01*Math.sqrt(0.1*(time% 400)));
+        }
+    }
+}),
+(scale) => ((time, click) => {
+    if(click) return 0.01;
+    else {
+        if(time % 240 < 60) {
+            return scale*(0.000666667*(time % 240));
+        } else if(time % 240 < 180) {
+            return scale*(0.04);
+        } else {
+            return scale*(0.04-0.000666667*(time % 240 - 180));
+        }
+    }
+}),
+];
+
+das = [
+(scale, scale2) => ((time, click) => {
+    if(click) return 2*scale2;
+    else return scale*(1*Math.sin(0.05*time));
+}),
+(scale, scale2) => ((time, click) => {
+    if(click) return scale2*2;
+    else {
+        if(time % 400 < 200) {
+            return scale*(0.1*Math.sqrt(0.1*(time% 400)));
+        } else {
+            return scale*(-0.1*Math.sqrt(0.1*(time% 400 - 200)));
+        }
+    }
+}),
+(scale, scale2) => ((time, click) => {
+    if(click) return scale2*2;
+    else {
+        if(time % 240 < 60) {
+            return scale*10*(-0.04+(0.000666667*(time % 240)));
+        } else if(time % 240 < 180) {
+            return 0;
+        } else {
+            return scale*10*(0.000666667*(time % 240 - 180));
+        }
+    }
+}),
+];
+
+dss = [
+(scale, scale2) => ((time, click) => {
+    if(click) return 1*scale2;
+    else return scale*(1.5*Math.sin(0.05*time));
+}),
+(scale, scale2) => ((time, click) => {
+    if(click) return 0.1*scale2;
+    else return scale*(1.5*Math.sin(0.05*time));
+}),
+(scale, scale2) => ((time, click) => {
+    if(click) return scale2*1;
+    else {
+        if(time % 400 < 200) {
+            return scale*(0.1*Math.sqrt(0.1*(time% 400)));
+        } else {
+            return scale*(-0.1*Math.sqrt(0.1*(time% 400 - 200)));
+        }
+    }
+}),
+(scale, scale2) => ((time, click) => {
+    if(click) return scale2*1;
+    else {
+        if(time % 240 < 60) {
+            return scale*(0.000666667*(time % 240));
+        } else if(time % 240 < 180) {
+            return scale*(0.04);
+        } else {
+            return scale*(0.04-0.000666667*(time % 240 - 180));
+        }
+    }
+}),
+]
+
+randomSign = () => (Math.random()>0.5) ? 1 : -1;
+$("#canvas").mousedown(function() {
+    var petals = Math.floor(Math.random()*10)+3;
+
+    let side = 30+Math.random()*60;
+    let color = hslStr(Math.random()*360, 80, 50, 0.7);
+    let drf = drs[Math.floor(Math.random()*drs.length)]((0.5+Math.random())*randomSign());
+    let daf = das[Math.floor(Math.random()*das.length)]((0.5+Math.random())*randomSign(), 0.5+Math.random());
+    let dsf = dss[Math.floor(Math.random()*dss.length)]((0.5+Math.random())*randomSign(), 0.5+Math.random());
+    if(Math.random()<0.1) {side = 2; dsf = (time, click) => 0; petals = 20+Math.random()*20}
+
+    for(let i=0; i<petals; i++) {
+        let newtri = new Triangle(mouse.x, mouse.y, 0, side, color, (i/petals)*2*Math.PI);
+        newtri.dr= drf;
+        newtri.da= daf;
+        newtri.ds= dsf;
+        triangles.push(newtri);
+    }
+});
+
+$("#canvas").mouseup(function() {
+    for(var i=0; i<triangles.length; i++) {
+        triangles[i].clicking = false;
+    }
+});
+
+if(!Triangle)
+function Triangle(x, y, altitude, sidelength, color, rotation) {
+    this.x = x; this.y = y;
+    this.altitude = altitude; this.sidelength = sidelength; 
+    this.color = color; this.rotation = rotation;
+    this.lifetime=0; this.clicking = true;
+    //each differential is a funciton of lifetime and clicking
+    this.da = (a, b) => 0;
+    this.ds = (a, b) => 0;
+    this.dr = (a, b) => 0;
+
+
+}
+}
+
+hslStr = function(h, s, l, a) {
+    return "hsla("+h+","+s+"%,"+l+"%,"+a+")";
+}
+
+drawTri = function(tri) {
+    ctx.fillStyle = tri.color;
+
+    ctx.save();
+    ctx.translate(tri.x, tri.y);
+    ctx.rotate(tri.rotation);
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(tri.sidelength/2, tri.altitude);
+    ctx.lineTo(-tri.sidelength/2, tri.altitude);
+    ctx.lineTo(0, 0);
+    ctx.fill();
+    // ctx.strokeStyle="white";
+    // ctx.stroke();
+    ctx.restore();
+}
+
+reDraw = function() {
+
+    canv.attr('width',$('body').width());
+    canv.attr('height',$('body').height());
+
+    ctx.fillStyle = "#112233";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+
+    for(let i=0; i<triangles.length; i++) {
+        const tri = triangles[i];
+        drawTri(tri);
+
+        tri.altitude+=tri.da(tri.lifetime, tri.clicking);
+        tri.sidelength+=tri.ds(tri.lifetime, tri.clicking);
+        tri.rotation+=tri.dr(tri.lifetime, tri.clicking);
+
+
+        triangles[i].lifetime++;
+    }
+
+  
+  window.requestAnimationFrame(reDraw);
+}
+window.requestAnimationFrame(reDraw);
+</script>
+</body>
+</html>
