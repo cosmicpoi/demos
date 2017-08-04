@@ -1,0 +1,26 @@
+@charset "utf-8";
+
+// Define defaults for each variable.
+
+$base-font-family: "Raleway", Helvetica, Arial, sans-serif !default;
+
+$text-color:       white !default;
+$text-color-invert:       black !default;
+$background-color: #111111 !default;
+$brand-color:      #333377 !default;
+
+$sidebar-color:    #222224 !default;
+$sidebar-width: 200px;
+$border-color-1: #444446 !default;
+
+$card-color-1: darken($brand-color, 10%) !default;
+$card-color-2: darken($brand-color, 20%) !default;
+
+$light-gray: #e3e3e3 !default;
+// $grey-color:       #828282 !default;
+
+
+// Import partials.
+@import
+  "mytheme/style"
+;

@@ -424,6 +424,9 @@ function squarify(blankRect, myTree, myKeys) {
 		}
 	}
 }
+
+ctx.fillStyle="#aaa";
+ctx.fillRect(0, 0, canvas.width, canvas.height);
 squarify(new Rectangle(0, 0, 800, 600), tree, Object.keys(tree));
 // squarify(new Rectangle(0, 0, 800, 600), tree["7"].children, Object.keys(tree["7"].children));
 

@@ -1,0 +1,134 @@
+html,body {
+	margin:0;
+	height:100%;
+	padding:0;
+}
+body {
+	font-family:$base-font-family;
+	background:$background-color;
+	color:$text-color;
+}
+.wrapper {
+	display:flex;
+	flex-direction:row;
+	height:100%;
+	width:100%;
+}
+.logo {
+	background:$brand-color;
+	position:absolute;
+	width:250px;
+	height:70px;
+	box-shadow: 8px 5px 0 $card-color-1,
+				16px 10px 0 $card-color-2;
+	h1 {
+		font-weight:400;
+		text-align:center;
+		padding:0;
+		margin:0;
+		line-height:70px;
+		a {
+			color:$text-color;
+			text-decoration:none;
+			border-radius:5px;
+			padding:3px 5px;
+			transition:color 0.2s, background 0.3s;
+			&:hover {
+				color:$brand-color;
+				background:$light-gray;
+			}
+		}
+	}
+}
+.sidebar {
+	height:100%;
+	background:$sidebar-color;
+	width:$sidebar-width;
+	z-index:1;	
+	margin-right:12px;
+	
+	box-shadow: 4px 0 0 $border-color-1,
+				7px 0 0 $sidebar-color,
+				9px 0 0 $border-color-1,
+				11px 0 0 $sidebar-color,
+				12px 0 0 $border-color-1;
+}
+.list-container {
+	margin:90px 5px 5px 10px;
+	ul {
+		list-style:none;
+		padding:0;
+		text-align:center;
+	}
+	li {
+		padding:0.5em;
+	}
+	a {
+		color:$text-color;
+		text-decoration:none;
+	}
+}
+.page-content {
+	flex-grow:1;
+	// background:blue;
+	// width:100%;
+	position:relative;
+	.about-link {
+		background:white;
+		opacity:0.5;
+		position:absolute;
+		right:10px;
+		top:10px;
+		border-radius:3px;
+		margin:0;
+		padding:5px 8px;
+		transition:opacity 0.2s;
+		a {
+			color:$background-color;
+			text-decoration: none;
+		}
+		&:hover {
+			opacity:1;		
+		}
+	}
+	iframe {
+		width:100%;
+		height:100%;
+	}
+}
+#about {
+	.close-button {
+		opacity:0.5;
+		width:1.5em;
+		height:1.5em;
+		background:$text-color;
+		text-align:center;
+		line-height:1.5em;
+		border-radius:1000px;
+		position:absolute;
+		top:5px;
+		right:5px;
+		transition:opacity 0.25s;
+		&:hover {
+			opacity:1;
+		}
+		a {
+			text-decoration: none;
+			color:$background-color;
+		}
+	}
+	height:100%;
+	width:400px;
+	position:fixed;
+	right:-400px;
+	background:$sidebar-color;
+	z-index:1;
+	&:target {
+		right:0;
+	}
+	h1 {
+		font-weight:400;
+		text-align:center;
+		color:$text-color;
+	}
+}

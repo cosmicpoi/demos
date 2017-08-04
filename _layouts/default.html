@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% include head.html %}
+  </head>
+
+  <body>
+  <div class="wrapper">
+    <aside class="sidebar">
+      <div class="logo">
+        <h1><a href="/">Alan's Demos</a></h1>
+      </div>
+      <div class="list-container">
+        <ul class="demo-list">
+        {% for demo in site.pages %}
+          {% if demo.categories contains 'demos' %}
+          <li>
+              <a class="demo-link" href="{{ demo.url | relative_url }}">{{ demo.title | escape }}</a>
+          </li>
+          {% endif %}
+        {% endfor %}
+       </ul>
+      </div>
+    </aside>
+
+    <section class="page-content">
+      <div class="wrapper">
+      {{ content }}
+      </div>
+    </section>
+  </div>
+
+  </body>
+
+</html>
