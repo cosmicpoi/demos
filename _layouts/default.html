@@ -8,11 +8,12 @@
   <div class="wrapper">
     <aside class="sidebar">
       <div class="logo">
-        <h1><a href="/">Alan's Demos</a></h1>
+        <h1><a href="{{ site.baseurl }}">Alan's Demos</a></h1>
       </div>
       <div class="list-container">
         <ul class="demo-list">
-        {% for demo in site.pages %}
+        {% assign items = site.pages | sort: 'date' | reverse %}
+        {% for demo in items %}
           {% if demo.categories contains 'demos' %}
           <li>
               <a class="demo-link" href="{{ demo.url | relative_url }}">{{ demo.title | escape }}</a>
