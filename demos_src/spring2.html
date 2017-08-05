@@ -21,6 +21,8 @@ canvas {
 
 <script type="text/javascript">
 
+const VEC_ZERO = {x:0, y:0};
+
 const CLICK_1 = 1;
 const CLICK_2 = 2;
 const CLICK_NONE = 0;
@@ -50,7 +52,13 @@ let box2 = {
   v: {x:0, y:0},
   a: {x:0, y:0}
 }
-let springLength = 100;
+
+const dist = (point1,point2) => Math.pow(Math.pow(point1.x-point2.x,2)+Math.pow(point1.y-point2.y,2), 0.5);
+const normVec = (vec) => {let mag = dist(vec, VEC_ZERO); return {x:vec.x/mag, y:vec.y/mag}};
+const scale = (vec, scalar) => ({x: vec.x*scalar, y:vec.y*scalar});
+const add = (vec1, vec2) => ({x:vec1.x+vec2.x, y:vec1.y+vec2.y});
+
+let springLength = dist(box1.p, box2.p);
 
 let click = {x: 0, y:0};
 let clicking = CLICK_NONE;
@@ -72,10 +80,7 @@ $(canvas).mousemove(function(e) {
 
 //vector operations
 
-const dist = (point1,point2) => Math.pow(Math.pow(point1.x-point2.x,2)+Math.pow(point1.y-point2.y,2), 0.5);
-const normVec = (vec) => {let mag = dist(vec, VEC_ZERO); return {x:vec.x/mag, y:vec.y/mag}};
-const scale = (vec, scalar) => ({x: vec.x*scalar, y:vec.y*scalar});
-const add = (vec1, vec2) => ({x:vec1.x+vec2.x, y:vec1.y+vec2.y});
+
 
 
 function reDraw() {
@@ -103,14 +108,27 @@ function reDraw() {
   ctx.fillRect(box1.p.x-boxW/2, box1.p.y-boxW/2, boxW, boxW);
   ctx.fillRect(box2.p.x-boxW/2, box2.p.y-boxW/2, boxW, boxW);
 
-  let damp = 0.1;
+  let damp = 0.3;
 
   let boxes = [box1, box2];
   for(let i=0; i<boxes.length; i++) {
     let thisbox = boxes[i]; let otherbox = boxes[(i+1)%2];
 
-    thisbox.ax-=damp*thisbox.vx;
-    thisbox.ay-=damp*thisbox.vy;
+    let delx = dist(thisbox.p, otherbox.p)-springLength;
+    let normalized = normVec(add(otherbox.p, scale(thisbox.p, -1)));
+
+    let force = scale(normalized, 0.1*delx);
+
+    thisbox.a.x = force.x;
+    thisbox.a.y = force.y;
+
+    thisbox.a.x-=damp*thisbox.v.x;
+    thisbox.a.y-=damp*thisbox.v.y;
+
+    thisbox.p.x+=thisbox.v.x;
+    thisbox.p.y+=thisbox.v.y;
+    thisbox.v.x+=thisbox.a.x
+    thisbox.v.y+=thisbox.a.y
   }
 
 

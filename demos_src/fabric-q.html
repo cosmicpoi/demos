@@ -32,8 +32,8 @@ canv.attr('height',$('body').height());
 
 let dist_between = 50;
 
-let max_across = Math.floor(canvas.width/dist_between)-4;
-let max_down = Math.floor(canvas.height/dist_between)-5;
+let max_across = Math.floor(canvas.width/dist_between)-2;
+let max_down = Math.floor(canvas.height/dist_between)-3;
 
 let offset_x = (canvas.width-dist_between*(max_across-1))/2;
 let offset_y = dist_between;
@@ -54,8 +54,7 @@ for(let i=0; i<max_across; i++) {
       forces: [],
       getForce: function() {
         return this.forces.reduce((acc, curr) => ({x:acc.x+curr.x, y:acc.y+curr.y}),{x:0, y:0});
-      },
-      clicking:false
+      }
     });
   }
 }
@@ -80,7 +79,7 @@ function Constraint(point1, point2) {
   this.start = point1; //references
   this.end = point2;
   this.length = dist(point1,point2);
-  this.k = 0.01;
+  this.k = 0.03;
   // console.log("length is ")+this.length;
   this.applyForce = function() { //Hooke's law???
     let delx = dist(this.start,this.end)-this.length; //negative if it's compressed
@@ -115,22 +114,12 @@ for(var i=0; i<max_down; i++) {
     constraints.push(new Constraint(points[j*max_down+i],points[(j+1)*max_down+i]));    
   }
 }
-for(var i=0; i<max_across-1; i++) {
-  for(var j=0; j<max_down-1; j++) {
-    constraints.push(new Constraint(points[i*max_down+j],points[(i+1)*max_down+j+1]));    
-  }
-}
 
-
-let click = {x: 0, y:0, vx:0, vy:0};
+let click = {x: 0, y:0};
 
 $(canvas).mousemove(function(e) {
-  let newx = e.pageX - $(canvas).offset().left;
-  let newy = e.pageY - $(canvas).offset().top;
-  click.vx = newx-click.x;
-  click.vy = newy-click.y;
-  click.x = newx;
-  click.y = newy;
+  click.x = e.pageX - $(canvas).offset().left;
+  click.y = e.pageY - $(canvas).offset().top;
 }).mousedown(function() {
   for(let i=0; i<points.length; i++) {
     if(dist(click, points[i]) < 100) {
@@ -165,28 +154,22 @@ function reDraw() {
       points[i].y+=points[i].vy;
 
       if(points[i].clicking) {
-        points[i].x += click.vx;
-        points[i].y += click.vy;
-        points[i].vx = 0; ///comment these 4 line out to make the points snap back
-        points[i].vy = 0;
-        points[i].ax = 0;
-        points[i].ay = 0;
-      } else {
-        points[i].vx+=points[i].ax;
-        points[i].vy+=points[i].ay; //gravity-independent
-
-        points[i].forces.push({x:0, y:0.1}); //apply gravity
-        let netForce = points[i].getForce();
-        points[i].forces = [];
-
-        points[i].ax = netForce.x;
-        points[i].ay = netForce.y;
-
-        points[i].ax -= 0.4 * points[i].vx;
-        points[i].ay -= 0.4 * points[i].vy;
-        
+        points[i].x = click.x;
+        points[i].y = click.y;
       }
 
+      points[i].vx+=points[i].ax;
+      points[i].vy+=points[i].ay; //gravity-independent
+
+      points[i].forces.push({x:0, y:0.1}); //apply gravity
+      let netForce = points[i].getForce();
+      points[i].forces = [];
+
+      points[i].ax = netForce.x;
+      points[i].ay = netForce.y;
+
+      points[i].ax -= 0.4 * points[i].vx;
+      points[i].ay -= 0.4 * points[i].vy;
     }
 
     ctx.fillStyle="white";  

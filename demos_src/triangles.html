@@ -26,6 +26,7 @@ canv = $("#canvas");
 canv.unbind();
 getTime = () => (Date.now()-starttime);
 canv.attr('width',$('body').width());
+canv.attr('height',$('body').height());
 ctx.setTransform(1, 0, 0, 1, 0, 0);
 ctx.translate(canvas.width/2, canvas.height/2);
 
@@ -252,7 +253,7 @@ canvasDraw = function() {
     for(var i=0; i<10; i++) {
         makeDyingBloom(Math.random()*canvas.width,Math.random()*canvas.height);    
     }
-    
+
 </script>
 </body>
 </html>
