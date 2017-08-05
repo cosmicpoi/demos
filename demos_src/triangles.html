@@ -22,18 +22,18 @@ canvas {
 <script type="text/javascript">
 canvas = document.getElementById("canvas");
 ctx = canvas.getContext('2d');
-canv = $("canvas");
+canv = $("#canvas");
 canv.unbind();
+getTime = () => (Date.now()-starttime);
 canv.attr('width',$('body').width());
-canv.attr('height',$('body').height());
+ctx.setTransform(1, 0, 0, 1, 0, 0);
 ctx.translate(canvas.width/2, canvas.height/2);
-
 
 triangles = [];
 
 mouse = {x:0, y:0};
 $("#canvas").mousemove(function(event) {
-	mouse.x = event.pageX-$(this).offset().left;
+    mouse.x = event.pageX-$(this).offset().left;
     mouse.y = event.pageY-$(this).offset().top;
 });
 drs = [
@@ -133,19 +133,26 @@ $("#canvas").mousedown(function() {
 
     let side = 30+Math.random()*60;
     let color = hslStr(Math.random()*360, 80, 50, 0.7);
-    let drf = drs[Math.floor(Math.random()*drs.length)]((0.5+Math.random())*randomSign());
-    let daf = das[Math.floor(Math.random()*das.length)]((0.5+Math.random())*randomSign(), 0.5+Math.random());
-    let dsf = dss[Math.floor(Math.random()*dss.length)]((0.5+Math.random())*randomSign(), 0.5+Math.random());
-    if(Math.random()<0.1) {side = 2; dsf = (time, click) => 0; petals = 20+Math.random()*20}
+    let drf = drs[Math.floor(Math.random()*drs.length)](1*(0.5+Math.random())*randomSign());
+    let daf = das[Math.floor(Math.random()*das.length)](1*(0.5+Math.random())*randomSign(), 0.5+Math.random());
+    let dsf = dss[Math.floor(Math.random()*dss.length)](1*(0.5+Math.random())*randomSign(), 0.5+Math.random());
+    if(Math.random()<0.1) {side = 2; dsf = (time, click) => 0; petals = 20+Math.floor(Math.random()*20)}
 
     for(let i=0; i<petals; i++) {
         let newtri = new Triangle(mouse.x, mouse.y, 0, side, color, (i/petals)*2*Math.PI);
         newtri.dr= drf;
         newtri.da= daf;
         newtri.ds= dsf;
+        newtri.maxLife = 600;
         triangles.push(newtri);
     }
 });
+
+function reDraw() {
+    canvasDraw();
+    window.requestAnimationFrame(reDraw);        
+}
+window.requestAnimationFrame(reDraw);
 
 $("#canvas").mouseup(function() {
     for(var i=0; i<triangles.length; i++) {
@@ -153,8 +160,7 @@ $("#canvas").mouseup(function() {
     }
 });
 
-if(!Triangle)
-function Triangle(x, y, altitude, sidelength, color, rotation) {
+Triangle = function(x, y, altitude, sidelength, color, rotation) {
     this.x = x; this.y = y;
     this.altitude = altitude; this.sidelength = sidelength; 
     this.color = color; this.rotation = rotation;
@@ -163,9 +169,13 @@ function Triangle(x, y, altitude, sidelength, color, rotation) {
     this.da = (a, b) => 0;
     this.ds = (a, b) => 0;
     this.dr = (a, b) => 0;
+    this.dead = false;
 
-
-}
+    this.kill = function() {
+        this.dead = true;
+        this.da = (a, b) => (-1);
+        this.ds = (a, b) => (-1);
+    }
 }
 
 hslStr = function(h, s, l, a) {
@@ -189,10 +199,10 @@ drawTri = function(tri) {
     ctx.restore();
 }
 
-reDraw = function() {
+canvasDraw = function() {
 
-    canv.attr('width',$('body').width());
-    canv.attr('height',$('body').height());
+    canv.attr('width',$('#canvas').width());
+    canv.attr('height',$('#canvas').height());
 
     ctx.fillStyle = "#112233";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -206,14 +216,43 @@ reDraw = function() {
         tri.sidelength+=tri.ds(tri.lifetime, tri.clicking);
         tri.rotation+=tri.dr(tri.lifetime, tri.clicking);
 
+        tri.lifetime++;
 
-        triangles[i].lifetime++;
+        if(tri.lifetime==tri.maxLife) {
+            triangles[i].kill();
+        }
+        if(tri.dead && tri.altitude<5 ) {
+            triangles.splice(i, 1);
+        }
     }
 
   
-  window.requestAnimationFrame(reDraw);
+
 }
-window.requestAnimationFrame(reDraw);
+
+
+//init stuff
+
+    function makeDyingBloom(x, y) {
+        let side = 30+Math.random()*60;
+        let drf = drs[0](1);
+        let daf = (side, click) => (-2);
+        let dsf = (side, click) => (-2);
+
+        let color = hslStr(Math.random()*360, 80, 50, 0.7);
+        for(let i=0; i<10; i++) {
+            let newtri = new Triangle(x, y, 150, 150, color, (i/10)*2*Math.PI);
+            newtri.dr= drf;
+            newtri.da= daf;
+            newtri.ds= dsf;
+            newtri.maxLife = 30;
+            triangles.push(newtri);
+        }
+    }
+    for(var i=0; i<10; i++) {
+        makeDyingBloom(Math.random()*canvas.width,Math.random()*canvas.height);    
+    }
+    
 </script>
 </body>
 </html>

@@ -1,9 +1,9 @@
 ---
 layout: default
-title:  "Cellular Automata"
-date:   2017-06-24 11:53:18 -0400
+title:  "Tron"
+date:   2017-05-25 11:53:18 -0400
 categories: demos canvas
-src: "automata.html"
+src: "tron.html"
 ---
 
 This is an implementation of the Cellular Automata algorithm.

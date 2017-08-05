@@ -6,6 +6,36 @@
 
   <body>
   <div class="wrapper">
+    
+    <section class="page-content">
+      <div class="wrapper">
+      <p class="about-link"><a href="#about">About</a></p>
+          {% if page.url == site.baseurl %}
+            {% assign demo_items = site.pages | sort: 'date' | reverse %}
+            {% for demo in demo_items limit:1 %}
+              {% assign demo_url = "../demos_src/" | append: demo.src %}
+              {% assign active_demo = demo.title %}
+            {% endfor %}
+            
+          {% else %}
+            {% assign demo_url = "../demos_src/" | append: page.src %}
+            {% assign active_demo = page.title %}
+          {% endif %}
+
+          <iframe src="{{ demo_url }}" frameborder="0"></iframe>
+
+          <div id="about">
+            <div class="close-button"><a href="#">x</a></div>
+            <h1>About This Demo</h1>
+            
+            {{ content }}
+
+            {{ test_var }}
+
+
+          </div>
+      </div>
+    </section>
     <aside class="sidebar">
       <div class="logo">
         <h1><a href="{{ site.baseurl }}">Alan's Demos</a></h1>
@@ -16,21 +46,18 @@
         {% for demo in items %}
           {% if demo.categories contains 'demos' %}
           <li>
-              <a class="demo-link" href="{{ demo.url | relative_url }}">{{ demo.title | escape }}</a>
+              <a class="demo-link {% if active_demo == demo.title %}demo-active{% endif %}" href="{{ demo.url | relative_url }}">{{ demo.title | escape }}</a>
           </li>
           {% endif %}
         {% endfor %}
        </ul>
       </div>
+      
     </aside>
-
-    <section class="page-content">
-      <div class="wrapper">
-      {{ content }}
-      </div>
-    </section>
+    
   </div>
 
   </body>
+
 
 </html>

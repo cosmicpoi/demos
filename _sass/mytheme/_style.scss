@@ -35,12 +35,13 @@ body {
 			transition:color 0.2s, background 0.3s;
 			&:hover {
 				color:$brand-color;
-				background:$light-gray;
+				background:$text-color;
 			}
 		}
 	}
 }
 .sidebar {
+	order:0;
 	height:100%;
 	background:$sidebar-color;
 	width:$sidebar-width;
@@ -54,14 +55,33 @@ body {
 				12px 0 0 $border-color-1;
 }
 .list-container {
-	margin:90px 5px 5px 10px;
+	margin:100px 5px 5px 10px;
 	ul {
 		list-style:none;
 		padding:0;
 		text-align:center;
 	}
 	li {
-		padding:0.5em;
+		margin: 1.5em 0;
+	}
+	.demo-link {
+		padding:0.5em 0.5em;
+		border-radius:7px;
+		transition: background 0.2s, color 0.2s;
+		&:hover {
+			background:darken($text-color,40%);
+			color:$sidebar-color;
+		}
+	}
+	.demo-active {
+		background:red;
+		background:$text-color;
+		color:$sidebar-color;
+		border-radius:0;
+		font-weight:500;
+		&:hover {
+			background:$text-color;
+		}
 	}
 	a {
 		color:$text-color;
@@ -69,6 +89,7 @@ body {
 	}
 }
 .page-content {
+	order:1;
 	flex-grow:1;
 	// background:blue;
 	// width:100%;
