@@ -13,7 +13,11 @@
           {% if page.url == "/" %}
             {% assign demo_items = site.pages | sort: 'date' | reverse %}
             {% for demo in demo_items limit:1 %}
-              {% assign demo_url = site.baseurl | append: "demos_src/" | append: demo.src %}
+              {% if site.baseurl == "/" %}
+                {% assign demo_url = site.baseurl | append: "demos_src/" | append: demo.src %}
+              {% else %}
+                {% assign demo_url = site.baseurl | append: "/demos_src/" | append: demo.src %}
+              {% endif %}
               {% assign active_demo = demo.title %}
             {% endfor %}
             
