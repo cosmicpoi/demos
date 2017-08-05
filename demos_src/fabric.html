@@ -1,0 +1,157 @@
+<html>
+<head>
+	<title></title>
+	<style type="text/css">
+* {
+  margin:0;
+  padding:0;
+}
+canvas {
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+}
+	</style>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+
+<script type="text/javascript">
+
+const VEC_ZERO = {x:0, y:0};
+
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext('2d');
+let canv = $("canvas");
+
+canv.attr('width',$('body').width());
+canv.attr('height',$('body').height());
+
+let dist_between = 50;
+
+let max_across = Math.floor(canvas.width/dist_between)-2;
+let max_down = Math.floor(canvas.height/dist_between)-3;
+
+let offset_x = (canvas.width-dist_between*(max_across-1))/2;
+let offset_y = dist_between;
+
+let points = [];
+
+// ctx.fillStyle="black";
+for(let i=0; i<max_across; i++) {
+  for(let j=0; j<max_down; j++) {
+    points.push({
+      x:offset_x+i*dist_between,
+      y:offset_y+j*dist_between,
+      vx: 0,
+      vy: 0,
+      ax: 0,
+      ay: 0,
+      static: j==0,
+    });
+  }
+}
+
+function drawCircle(x, y, r) {
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, 2*Math.PI);
+  ctx.fill();
+};
+function drawLine(start, end) {
+  ctx.beginPath();
+  ctx.moveTo(start.x, start.y);
+  ctx.lineTo(end.x, end.y);
+  ctx.stroke();
+};
+const dist = (point1,point2) => Math.pow(Math.pow(point1.x-point2.x,2)+Math.pow(point1.y-point2.y,2), 0.5);
+const normVec = (vec) => {let mag = dist(vec, VEC_ZERO); return {x:vec.x/mag, y:vec.y/mag}};
+const scale = (vec, scalar) => ({x: vec.x*scalar, y:vec.y*scalar});
+const add = (vec1, vec2) => ({x:vec1.x+vec2.x, y:vec1.y+vec2.y});
+
+function Constraint(point1, point2) {
+  this.start = point1; //references
+  this.end = point2;
+  this.length = dist(point1,point2);
+  this.k = 0.001;
+  this.b = 0.01;
+  // console.log("length is ")+this.length;
+  this.applyForce = function() { //Hooke's law???
+    let delx = dist(this.start,this.end)-this.length; //negative if it's compressed
+    // console.log("length is "+this.length);
+    // console.log("delx is "+delx);
+    const mypoints = [this.start, this.end];
+    for(let i=0; i<mypoints.length; i++) {
+      const thispoint = mypoints[i]; const otherpoint = mypoints[(i+1)%2];
+      let normalized =  normVec({x:otherpoint.x-thispoint.x, y:otherpoint.y-thispoint.y});
+      // console.log(normalized);
+      let force = add(scale(normalized,this.k*delx), scale({x:thispoint.vx, y:thispoint.vy},-this.b))
+      // console.log("force is "+force);
+
+      thispoint.ax+=force.x;
+      thispoint.ay+=force.y;
+    }
+
+
+  }
+}
+
+let constraints = [];
+
+// constraints.push(new Constraint(points[1],points[2]));
+
+for(var i=0; i<max_across; i++) {
+  for(var j=0; j<max_down-1; j++) {
+    constraints.push(new Constraint(points[i*max_down+j],points[i*max_down+j+1]));    
+  }
+}
+for(var i=0; i<max_down; i++) {
+  for(var j=0; j<max_across-1; j++) {
+    constraints.push(new Constraint(points[j*max_down+i],points[(j+1)*max_down+i]));    
+  }
+}
+
+function reDraw() {
+  //reset 
+  canv.attr('width',$('body').width());
+  canv.attr('height',$('body').height());
+  
+  ctx.fillStyle = "#222244";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  //update constraints
+  ctx.strokeStyle="#FFFFFF";
+  for(let i=0; i<constraints.length; i++) {
+    constraints[i].applyForce();
+    drawLine(constraints[i].start, constraints[i].end);
+  }
+
+  //redraw + update points
+  for(let i=0; i<points.length; i++) {
+    if(!points[i].static) {
+      points[i].x+=points[i].vx;
+      points[i].y+=points[i].vy;
+
+      points[i].vx+=points[i].ax;
+      points[i].vy+=points[i].ay; //gravity-independent
+
+      // points[i].vx*=0.9;
+      // points[i].vy*=0.9;
+
+      points[i].vy+=0.02; //apply gravity
+    }
+
+    ctx.fillStyle="white";  
+    drawCircle(points[i].x,points[i].y,5);
+  }
+  
+  
+  window.requestAnimationFrame(reDraw);
+}
+window.requestAnimationFrame(reDraw);
+
+</script>
+</body>
+</html>
