@@ -1,0 +1,127 @@
+<html>
+<head>
+	<title></title>
+	<style type="text/css">
+* {
+  margin:0;
+  padding:0;
+}
+canvas {
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+}
+	</style>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+
+<script type="text/javascript">
+
+const CLICK_1 = 1;
+const CLICK_2 = 2;
+const CLICK_NONE = 0;
+
+
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext('2d');
+let canv = $("canvas");
+
+canv.attr('width',$('body').width());
+canv.attr('height',$('body').height());
+
+let boxW = 50;
+let box1 = {
+  p: {
+    x:canvas.width/2-50,
+    y:canvas.height/2-50,
+  },
+  v: {x:0, y:0},
+  a: {x:0, y:0}
+}
+let box2 = {
+  p: {
+    x:canvas.width/2+50,
+    y:canvas.height/2+50,
+  },
+  v: {x:0, y:0},
+  a: {x:0, y:0}
+}
+let springLength = 100;
+
+let click = {x: 0, y:0};
+let clicking = CLICK_NONE;
+
+$(canvas).mousemove(function(e) {
+  click.x = e.pageX - $(canvas).offset().left;
+  click.y = e.pageY - $(canvas).offset().top;
+}).mousedown(function() {
+  if(box1.p.x-boxW/2 < click.x && click.x < box1.p.x+boxW/2
+  && box1.p.y-boxW/2 < click.y && click.y < box1.p.y+boxW/2) {
+    clicking = CLICK_1;
+  } else if(box2.p.x-boxW/2 < click.x && click.x < box2.p.x+boxW/2
+         && box2.p.y-boxW/2 < click.y && click.y < box2.p.y+boxW/2) {
+    clicking = CLICK_2;
+  }
+}).mouseup(function() {
+  clicking = CLICK_NONE;
+});
+
+//vector operations
+
+const dist = (point1,point2) => Math.pow(Math.pow(point1.x-point2.x,2)+Math.pow(point1.y-point2.y,2), 0.5);
+const normVec = (vec) => {let mag = dist(vec, VEC_ZERO); return {x:vec.x/mag, y:vec.y/mag}};
+const scale = (vec, scalar) => ({x: vec.x*scalar, y:vec.y*scalar});
+const add = (vec1, vec2) => ({x:vec1.x+vec2.x, y:vec1.y+vec2.y});
+
+
+function reDraw() {
+  //reset 
+  canv.attr('width',$('body').width());
+  canv.attr('height',$('body').height());
+  
+  ctx.fillStyle = "#224433";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  if(clicking == CLICK_1) {
+    box1.p.x = click.x; box1.p.y = click.y;
+  } else if(clicking == CLICK_2) {
+    box2.p.x = click.x; box2.p.y = click.y;
+  }
+
+  //update
+  ctx.fillStyle = "white";
+  ctx.strokeStyle="gray";
+  ctx.beginPath();
+  ctx.moveTo(box1.p.x, box1.p.y);
+  ctx.lineTo(box2.p.x, box2.p.y);
+  ctx.lineWidth = 4;
+  ctx.stroke();
+  ctx.fillRect(box1.p.x-boxW/2, box1.p.y-boxW/2, boxW, boxW);
+  ctx.fillRect(box2.p.x-boxW/2, box2.p.y-boxW/2, boxW, boxW);
+
+  let damp = 0.1;
+
+  let boxes = [box1, box2];
+  for(let i=0; i<boxes.length; i++) {
+    let thisbox = boxes[i]; let otherbox = boxes[(i+1)%2];
+
+    thisbox.ax-=damp*thisbox.vx;
+    thisbox.ay-=damp*thisbox.vy;
+  }
+
+
+  
+  
+  window.requestAnimationFrame(reDraw);
+}
+window.requestAnimationFrame(reDraw);
+
+
+
+</script>
+</body>
+</html>

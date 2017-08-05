@@ -30,7 +30,7 @@ canv.attr('width',$('body').width());
 canv.attr('height',$('body').height());
 
 boxW = 50;
-boxX = 0;
+boxX = 100;
 boxV = 0;
 boxA = 0;
 
@@ -44,6 +44,10 @@ function reDraw() {
   
   ctx.fillStyle = "#443322";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  if(clicking) {
+    boxX = click.x-ox;
+  }
 
   //update
   ctx.fillStyle = "white";
@@ -59,8 +63,7 @@ function reDraw() {
   boxX += boxV;
   boxV += boxA;
 
-  force = -boxX * 0.01;
-  boxA = force;
+  boxA = -boxX * 0.01 - boxV * 0.05;
 
 
   
@@ -68,6 +71,21 @@ function reDraw() {
   window.requestAnimationFrame(reDraw);
 }
 window.requestAnimationFrame(reDraw);
+
+let click = {x: 0, y:0};
+let clicking = false;
+
+$(canvas).mousemove(function(e) {
+  click.x = e.pageX - $(canvas).offset().left;
+  click.y = e.pageY - $(canvas).offset().top;
+}).mousedown(function() {
+  if(ox+boxX-boxW/2 < click.x && click.x < ox+boxX+boxW/2
+  && oy-boxW/2 < click.y && click.y < oy+boxW/2) {
+    clicking = true;
+  }
+}).mouseup(function() {
+  clicking = false;
+})
 
 </script>
 </body>

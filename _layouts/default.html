@@ -10,7 +10,7 @@
     <section class="page-content">
       <div class="wrapper">
       <p class="about-link"><a href="#about">About</a></p>
-          {% if page.url == site.baseurl %}
+          {% if page.url == "/" %}
             {% assign demo_items = site.pages | sort: 'date' | reverse %}
             {% for demo in demo_items limit:1 %}
               {% assign demo_url = "../demos_src/" | append: demo.src %}
