@@ -47,6 +47,8 @@ body {
 	width:$sidebar-width;
 	z-index:1;	
 	margin-right:12px;
+	display:flex;
+	flex-direction:column;
 	
 	box-shadow: 4px 0 0 $border-color-1,
 				7px 0 0 $sidebar-color,
@@ -54,8 +56,74 @@ body {
 				11px 0 0 $sidebar-color,
 				12px 0 0 $border-color-1;
 }
+.search-container {
+	// background:blue;
+	padding:0.5em 0.5em 1em 0.5em;
+	text-align:center;
+	background:lighten($sidebar-color, 10%);
+	box-shadow:  0 2px 0 $sidebar-color,
+				 0 4px 0 lighten($sidebar-color, 10%);
+	input {
+		margin-top:0.5em;
+		font-family:$base-font-family;
+		border-radius:5px;
+		box-shadow:none;
+		border:none;
+		outline:none;
+		font-size:14pt;
+		width:8em;
+		padding:0.1em 0.2em;
+		border:2px solid $sidebar-color;
+		background:none;
+		transition: color 0.2s, background 0.2s;
+		color:#888;
+		&::placeholder {
+			color:#888;
+		}
+		&:focus {
+			color:black;
+			background:white;
+		}
+	}
+}
+.padding-item {
+	height:100px;
+}
 .list-container {
-	margin:100px 5px 5px 10px;
+	height:100%;
+	padding:0px 5px 5px 10px;
+	overflow-y:auto;
+	// &::-webkit-scrollbar {
+	//     width: 7px;
+	//     background: rgba(0, 0, 0, 0.5); /* make scrollbar transparent */
+	// }
+	
+	&::-webkit-scrollbar-track {
+		border-radius: 7px;
+		background-color: rgba(20, 20, 20, 0.5);
+	}
+
+	&::-webkit-scrollbar {
+		width: 7px;
+		background-color: rgba(20, 20, 20, 0.5);
+	}
+
+	&::-webkit-scrollbar-thumb
+	{
+		background-color: #AAA;
+		border-radius: 10px;
+		background-image: -webkit-linear-gradient(90deg,
+		                                          rgba(0, 0, 0, .2) 25%,
+												  transparent 25%,
+												  transparent 50%,
+												  rgba(0, 0, 0, .2) 50%,
+												  rgba(0, 0, 0, .2) 75%,
+												  transparent 75%,
+												  transparent)
+	}
+
+
+
 	ul {
 		list-style:none;
 		padding:0;
