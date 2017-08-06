@@ -6,4 +6,4 @@ categories: demos canvas
 src: "spring.html"
 ---
 
-This is an implementation of the Cellular Automata algorithm.
+This was an initial Hooke's law test I did while experimenting for the 'Fabric' demo. I discovered that damping was necessary, otherwise the system would tend to oscillate out of control.

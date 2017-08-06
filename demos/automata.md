@@ -6,4 +6,4 @@ categories: demos canvas
 src: "automata.html"
 ---
 
-This is an implementation of the Cellular Automata algorithm.
+This is an implementation of [elementary cellular automata](http://mathworld.wolfram.com/ElementaryCellularAutomaton.html). Rule 30 is shown.

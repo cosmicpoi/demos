@@ -6,4 +6,4 @@ categories: demos canvas
 src: "spring2.html"
 ---
 
-This is an implementation of the Cellular Automata algorithm.
+This was another experiment I did in preparation for the 'Fabric' demo, this time with click support.

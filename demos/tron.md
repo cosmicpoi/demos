@@ -6,4 +6,4 @@ categories: demos canvas
 src: "tron.html"
 ---
 
-This is an implementation of the Cellular Automata algorithm.
+This is a simple Tron demo I made while running a lecture on canvas games a while ago. Use arrow keys and WASD to move.

@@ -80,7 +80,7 @@ function Constraint(point1, point2) {
   this.start = point1; //references
   this.end = point2;
   this.length = dist(point1,point2);
-  this.k = 0.01;
+  this.k = 0.02;
   // console.log("length is ")+this.length;
   this.applyForce = function() { //Hooke's law???
     let delx = dist(this.start,this.end)-this.length; //negative if it's compressed
@@ -175,7 +175,7 @@ function reDraw() {
         points[i].vx+=points[i].ax;
         points[i].vy+=points[i].ay; //gravity-independent
 
-        points[i].forces.push({x:0, y:0.1}); //apply gravity
+        points[i].forces.push({x:0, y:0.2}); //apply gravity
         let netForce = points[i].getForce();
         points[i].forces = [];
 
