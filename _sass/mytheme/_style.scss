@@ -78,7 +78,7 @@ body {
 		background:$text-color;
 		color:$sidebar-color;
 		border-radius:0;
-		font-weight:500;
+		font-weight:600;
 		&:hover {
 			background:$text-color;
 		}
@@ -117,7 +117,7 @@ body {
 		height:100%;
 	}
 }
-#about {
+.about-sidebar {
 	.close-button {
 		opacity:0.5;
 		width:1.5em;
@@ -144,12 +144,39 @@ body {
 	right:-400px;
 	background:$sidebar-color;
 	z-index:1;
-	&:target {
-		right:0;
+}
+#about:target {
+	right:0;
+}
+.about-container {
+	margin: 0 2em;
+	font-size:12pt;
+	line-height:1.5em;
+	text-align:justify;
+	pre {
+		code {
+			margin:0;
+			padding:0;
+			line-height:1em;
+		}
+		line-height:1em;
+		outline:1px solid #e3e3e3;
+		padding:0.5em 1em;
+		background:lighten($sidebar-color,30%);
 	}
 	h1 {
 		font-weight:400;
 		text-align:center;
 		color:$text-color;
+	}
+	a {
+		font-weight:600;
+		color:$link-color;
+		&:visited{
+			color:$link-color;
+		}
+		&:hover {
+			color:darken($link-color, 10%);
+		}
 	}
 }

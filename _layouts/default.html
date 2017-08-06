@@ -19,24 +19,26 @@
                 {% assign demo_url = site.baseurl | append: "/demos_src/" | append: demo.src %}
               {% endif %}
               {% assign active_demo = demo.title %}
+              {% assign mypage = demo %}
             {% endfor %}
             
           {% else %}
             {% assign demo_url = "../demos_src/" | append: page.src %}
             {% assign active_demo = page.title %}
+            {% assign mypage = page %}
           {% endif %}
 
           <iframe src="{{ demo_url }}" frameborder="0"></iframe>
 
-          <div id="about">
+          <div class="about-sidebar" id="about">
             <div class="close-button"><a href="#">x</a></div>
-            <h1>About This Demo</h1>
-            
-            {{ content }}
+            <div class="about-container">
+              <h1>About This Demo</h1>
+              
+              <!-- {{ mypage.categories }} -->
+              {{ mypage.content }}
 
-            {{ test_var }}
-
-
+            </div>
           </div>
       </div>
     </section>
