@@ -20,12 +20,14 @@
               {% endif %}
               {% assign active_demo = demo.title %}
               {% assign mypage = demo %}
+              {% assign ishome = true %}
             {% endfor %}
             
           {% else %}
             {% assign demo_url = "../demos_src/" | append: page.src %}
             {% assign active_demo = page.title %}
             {% assign mypage = page %}
+            {% assign ishome = false %}
           {% endif %}
 
           <iframe src="{{ demo_url }}" frameborder="0"></iframe>
@@ -36,7 +38,11 @@
               <h1>About This Demo</h1>
               
               <!-- {{ mypage.categories }} -->
-              {{ mypage.content }}
+              {% if ishome == true %}
+                {{ mypage.content }}
+              {% else %}
+                {{ content }}
+              {% endif %}
 
             </div>
           </div>
