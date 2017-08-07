@@ -1,0 +1,112 @@
+<html>
+<head>
+	<title></title>
+	<style type="text/css">
+	body {
+	  margin:0;
+	  padding:0;
+	  width:100%;
+	  height:100%;
+	}
+	canvas {
+	  border:1px solid black;
+	  margin:0;
+	  padding:0;
+	  width:100%;
+	  height:100%;
+	}
+	</style>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+<body>
+
+<canvas id="canvas" width="800" height="600">
+</canvas>
+
+<script type="text/javascript">
+const canvas = document.getElementById("canvas");
+
+$('canvas').attr('width', $('body').width());
+$('canvas').attr('height', $('body').height());
+
+const cdims = {height: canvas.height, width:canvas.width};
+const ctx = canvas.getContext('2d');
+
+
+
+ctx.fillStyle='black';
+ctx.fillRect(0,0, cdims.width, cdims.height);
+
+function drawCircle(x, y, r) {
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, 2*Math.PI);
+  ctx.fill();
+}
+function random_range(min, max) {
+  return Math.random()*(max-min)+min;
+}
+
+function makeSplat(startx, starty) {
+  //CREATE
+
+  let image_scale = Math.random()*0.66+0.33;
+
+  let moveDir = Math.random()*360;
+  let moveSpd = random_range(3, 12);
+  //let fric = random_range(moveSpd/8, moveSpd/2);
+
+  let sizeChange = random_range(image_scale/10, image_scale/3);
+
+  //STEP
+  let destroyed = false;
+  let x = startx; 
+  let y = starty;
+  ctx.globalAlpha = 0.6;
+  let startRadius = random_range(10, 20);
+  while(!destroyed) {
+    drawCircle(x, y, startRadius*image_scale);
+
+    image_scale-=sizeChange;
+
+    if(moveSpd>0) {
+      ctx.globalAlpha -= random_range(0.05, 0.1);
+    }
+
+    moveSpd*=0.90;
+
+    x+=moveSpd*Math.cos(moveDir);
+    y+=moveSpd*Math.sin(moveDir);
+
+    if(image_scale<0) {
+      destroyed = true;
+    }
+  }
+
+  //DESTROY
+  
+}
+function makeSplatter(x, y) {
+  ctx.fillStyle = `hsl(${Math.random()*360}, 70%, 50%)`;
+  
+  let bound = random_range(4, 12);
+  for(let i=0; i<bound; i++) {
+    makeSplat(x+Math.random()*16, y+Math.random()*16);
+  }
+}
+let click = {x: 0, y:0};
+
+$(canvas).mousemove(function(e) {
+  click.x = e.pageX - $(canvas).offset().left;
+  click.y = e.pageY - $(canvas).offset().top;
+}).mousedown(function() {
+  makeSplatter(click.x, click.y);
+});
+
+
+
+for(var i=0; i<10; i++) {
+  makeSplatter(Math.random()*cdims.width, Math.random()*cdims.height);
+}
+</script>
+</body>
+</html>
