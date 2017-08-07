@@ -53,7 +53,7 @@
         <h1><a href="{{ site.baseurl }}">Alan's Demos</a></h1>
       </div>
       <div class="padding-item"></div>
-      <div class="search-container"><input type="text" placeholder="Search"></div>
+      <div class="search-container"><input type="text" autocomplete = "off" id="search" placeholder="Search"></div>
       <div class="list-container">
         <ul class="demo-list">
         {% assign items = site.pages | sort: 'date' | reverse %}
@@ -70,7 +70,18 @@
     </aside>
     
   </div>
-
+  <script>
+    $("#search").keyup(function() {
+      let searchval = $(this).val();
+      $('.demo-list li').each(function() {
+        $(this).removeClass('hidden');
+        let itemtext = $(this).text();
+        if(!itemtext.toLowerCase().includes(searchval)) {
+          $(this).addClass('hidden')
+        }
+      });
+    });
+  </script>
   </body>
 
 
