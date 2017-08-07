@@ -6,4 +6,8 @@ categories: demos canvas
 src: "spring.html"
 ---
 
+**Controls:**
+
+- Click and drag the box, then let go.
+
 This was an initial Hooke's law test I did while experimenting for the 'Fabric' demo. I discovered that damping was necessary, otherwise the system would tend to oscillate out of control.

@@ -6,6 +6,10 @@ categories: demos canvas
 src: "fabric.html"
 ---
 
+**Controls:**
+
+- Click and release.
+
 This is a physics-based fabric simulation using HTML5 Canvas. There is no physics library; the entire engine is hard-coded.
 
 The way it works is that every joint has a position, velocity, and acceleration. These are integrated via addition:

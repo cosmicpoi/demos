@@ -6,4 +6,8 @@ categories: demos canvas
 src: "spring2.html"
 ---
 
+**Controls:**
+
+- Click and drag a box, then let go.
+
 This was another experiment I did in preparation for the 'Fabric' demo, this time with click support.

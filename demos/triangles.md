@@ -1,10 +1,16 @@
 ---
 layout: default
 title:  "Triangle Flowers"
-date:   2017-05-25 11:53:18 -0400
+date:   2017-08-04 11:03:00 -0400
 categories: demos canvas
 src: "triangles.html"
 ---
+
+**Controls:**
+
+- Click to make a flower.
+- Hold to make it bigger.
+- Let go to watch it.
 
 This is one of three demos found on the homepage of my website [alanluo.com](http://alanluo.com) as of August 2017.
 

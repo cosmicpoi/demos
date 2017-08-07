@@ -1,7 +1,7 @@
 ---
 layout: default
 title:  "Cellular Automata"
-date:   2017-06-24 11:53:18 -0400
+date:   2017-08-04 11:00:18 -0400
 categories: demos canvas
 src: "automata.html"
 ---
