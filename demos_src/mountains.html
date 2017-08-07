@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Mountains</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<style>
+		body {
+			margin:0;
+			padding:0;
+			width:100%;
+			height:100%;
+		}
+		.container {
+			border:1px solid black;
+			z-index:0;
+		}
+		.layer-container {
+			position:absolute;
+			top:0;
+			left:0;
+			width:100%;
+			height:100%;
+		}
+		.sun {
+			width:100px;
+			height:100px;
+			border-radius:50%;
+			background:white;
+			position:absolute;
+			box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.6);
+		}
+		.cloud {
+			position:absolute;
+		}
+		.puff {
+			position:absolute;
+			width:100px;
+			height:25px;
+			border-radius:25px;
+		}
+		.mountain {
+			position:absolute;
+			background:#337FFF;
+			transform: rotate(45deg);
+		}
+		.mountain-layer0 {}
+		.mountain-layer1 {}
+		.mountain-layer2 {}
+		.layer1 {z-index:1;} .layer2 {z-index:2;} .layer3 {z-index:3;} .layer4 {z-index:4;} .layer5 {z-index:5;}
+	</style>
+</head>
+<body>
+
+<div class="container">
+</div>
+
+<script>
+
+let SceneMaker = (function () {
+	function SceneFunc() { //the scene objects that we actually use
+		this.objects = []; //initialize objects array
+		this.colors = {
+			mountains:["#405C8F","#1E4EA4","#337FFF"],
+			clouds:"#E5F2FF",
+			background:"#15366B",
+			sun:"#DCECFF",
+		}
+		this.parallax = {
+			active:false,
+			positions:{},
+			velocities:{1:0.1, 2:0.15, 3:0.2, 4:0.25, 5:0.3},
+			velocity:10
+		};
+		for(var i=1; i<=5; i++) {
+			this.parallax.positions[i]={x:0, y:0}
+		}
+		//construct builder functions
+		this.addSun = function(sx, sy) {
+			this.objects.push({
+				type:"sun",
+				x: sx,
+				y: sy
+			});
+			return this;
+		};
+		this.addCloud = function(cx, cy) {
+			this.objects.push({
+				type:"cloud",
+				x:cx,
+				y:cy
+			});
+			return this;
+		};
+		this.addClouds = function(xrange, yrange) {
+			let width = xrange[1]-xrange[0];
+			let height = yrange[1]-yrange[0];
+			let number_clouds = Math.floor(2+Math.random()*2);
+			for(let i=0; i<number_clouds; i++) {
+				this.addCloud(xrange[0]+Math.random()*width, yrange[0]+Math.random()*height);
+			}
+			return this;
+		};
+		this.addMountain = function(mx, my, mlayer, msize) {
+			this.objects.push({
+				type:"mountain",
+				x:mx,
+				y:my,
+				layer: mlayer,
+				size: msize
+			});
+			return this;
+		};
+		this.addMountains = function(xrange, yaxis) {
+			let width = xrange[1]-xrange[0];
+			for(let i=0; i<3; i++) {
+				for(let j=0; j<=i; j++) {
+					this.addMountain(xrange[0]+width*j/(i+1)+Math.random()*100-50, yaxis+70*i, i,450-i*70);
+				}
+			}
+			return this;
+		};
+		this.makeObject = function(object) {
+			switch(object.type) {
+				case "sun":
+					return (
+						$("<div class='sun'></div>")
+						.css('top', `${object.y}px`)
+						.css('left',`${object.x}px`)
+						.css('background',this.colors.sun)
+						.addClass('layer1')
+						);
+					break;
+				case "cloud":
+					let cloud_container = $("<div class='cloud'></div>")
+						.css('top', `${object.y}px`)
+						.css('left',`${object.x}px`)
+						.addClass('layer2');
+					for(let i=0; i<3; i++) {
+						cloud_container.append(
+							$("<div class='puff'></div>")
+							.css('top',`${i*20+Math.random()*5}px`)
+							.css('left',`${-40+Math.random()*80}px`)
+							.css('background',this.colors.clouds)
+						);
+					}
+					return cloud_container;
+					break;
+				case "mountain":
+					let mountain_obj = $("<div class='mountain'></div>")
+						.css('top',`${object.y}px`)
+						.css('left',`${object.x}px`)
+						.addClass(`mountain-layer${object.layer}`)
+						.addClass(`layer${object.layer+3}`)
+						.css('background',this.colors.mountains[object.layer])
+						.css('width',`${object.size}px`)
+						.css('height',`${object.size}px`);
+					return mountain_obj;
+					break;
+				default:
+					console.log("ERROR: object type not found.")
+			}
+		};
+		this.setColors = function() {
+			return this;
+		};
+		this.buildScene = function() {
+			return (
+				this.addSun(100+Math.random()*300, 100)
+				.addClouds([0, 1000], [0, 200])
+				.addMountains([100, 900], 400)
+				.setParallax({active:true})
+				);
+		};
+		this.setParallax = function(options) {
+			for(key in options) {
+				this.parallax[key] = options[key];
+			}
+			return this;
+		};
+		//default settings
+		// this.setColors();
+	}
+	return {
+		hslStr: (h, s, l) => `hsl(${h}, ${s}%, ${l}%)`,
+		
+		makeScene: function() {
+			return new SceneFunc();
+		},
+	};
+})();
+
+	
+(function ($) {
+    $.fn.scenify = function(scene) {
+    	// This is the easiest way to have default options.
+    	// function(options)
+        // var settings = $.extend({
+        //     // These are the defaults.
+        //     color: "#556b2f",
+        //     backgroundColor: "white"
+        // }, options );
+
+        // set up parented positioning so that absolute positioning works
+
+        this.css('background',scene.colors.background);
+        if(!['absolute','relative','fixed'].includes(this.css('position'))) {
+        	this.css('position','relative');
+        }
+        if(!['auto','scroll','hidden'].includes(this.css('overflow'))) {
+        	this.css('overflow','hidden');
+        }
+        console.log(scene);
+        for(let i=0; i<scene.objects.length; i++) {
+        	let new_obj = scene.makeObject(scene.objects[i]);
+        	$(".container").append(new_obj);
+        }
+        if(scene.parallax.active) {
+        	let click = {x:0, y:0, vx:0, vy:0};
+        	
+        	for(let i=1; i<=5; i++) {
+        		let newlayer = $('<div></div>')
+        		.addClass("layer-container")
+        		.attr('id','layer-'+i)
+        		.append($('.layer'+i));
+        		$('.container').append(newlayer);
+        	}
+
+        	let movecount = 0;
+        	this.mousemove(function(e) {
+        		movecount++;
+        		let newx = e.pageX;
+        		let newy = e.pageY;
+        		click.vx = newx-click.x;
+        		click.vy = newy-click.y;
+        		click.x = newx;
+        		click.y = newy;
+
+        		if(movecount>1) {
+        			for(let i=1; i<=5; i++) {
+        				scene.parallax.positions[i].x+=  click.vx*scene.parallax.velocities[i];
+        				scene.parallax.positions[i].y+=  click.vy*scene.parallax.velocities[i];
+        				$('#layer-'+i).css('left',`${scene.parallax.positions[i].x}px`);
+        				$('#layer-'+i).css('top',`${scene.parallax.positions[i].y}px`);
+        				
+        			}
+        		}
+        	});
+        }
+        
+
+        return this;
+    };
+}( jQuery ));
+
+let myScene = SceneMaker.makeScene().buildScene();
+$('.container').scenify(myScene);
+
+function draw() {
+	$('.container').css('width',`${$(window).width()}px`)
+	$('.container').css('height',`${$(window).height()}px`)
+
+	window.requestAnimationFrame(draw);
+}
+
+window.requestAnimationFrame(draw);
+</script>
+
+</body>
+</html>
