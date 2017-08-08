@@ -1,0 +1,127 @@
+<html>
+<head>
+	<title>Hello world</title>
+	<script type="text/javascript" src="./js/three.js"></script>
+	<script type="text/javascript" src="./js/stats.js"></script>
+
+	<style type="text/css">
+	body {
+		margin: 0;
+		padding: 0;
+		overflow:hidden;
+		background-color:#000000;
+	}
+	div#WebGL-output {
+		position:absolute;
+		width:100%;
+		height:100%;
+	}
+	</style>
+</head>
+<body>
+	<div id="Stats-output"></div>
+	<div id="WebGL-output"></div>
+
+	<script type="text/javascript">
+		var clock, scene, camera, renderer, controls, stats;
+		var mouse = {x:0, y:0};
+
+		var particles = [];
+
+		function init() {
+			stats = initStats();
+
+			clock = new THREE.Clock();
+			clock.start();
+
+			camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 1, 4000);
+			camera.position.z = 1000;
+			scene = new THREE.Scene();
+			scene.fog = new THREE.FogExp2(0x000000, 0.0004);
+			scene.add(camera);
+
+			geometry = new THREE.Geometry();
+			sprite = new THREE.TextureLoader().load('./images/disk.png');
+			//make particles
+			for ( i = 0; i < 10000; i ++ ) {
+
+				var vertex = new THREE.Vector3();
+				vertex.x = 2000 * Math.random() - 1000;
+				vertex.y = 2000 * Math.random() - 1000;
+				vertex.z = 2000 * Math.random() - 1000;
+
+				geometry.vertices.push( vertex );
+				geometry.colors.push(new THREE.Color(1000*i));
+
+			}
+
+			material = new THREE.PointsMaterial({size: 30, sizeAttenuation: true, map: sprite, alphaTest: 0.5, transparent: true, vertexColors: THREE.VertexColors} );
+			// material.color.setHSL(1.0, 0.3, 0.7);
+
+			particles = new THREE.Points(geometry, material);
+
+			// particles.
+			scene.add(particles);
+			console.log(geometry);
+
+			//render
+			renderer = new THREE.WebGLRenderer();
+
+			//finish
+			document.getElementById("WebGL-output").appendChild(renderer.domElement);
+			onResize();
+			renderScene();
+		}
+		
+		function renderScene() {
+			updateParticles();
+			stats.update();
+			requestAnimationFrame(renderScene);
+			renderer.render(scene, camera);
+		}
+
+		function updateParticles() {
+			var time = clock.getElapsedTime();
+
+			camera.position.x += (mouse.x - camera.position.x) * 0.05;
+			camera.position.y += (- mouse.y - camera.position.y) * 0.05;
+
+			camera.lookAt(scene.position);
+
+			// h = (360 * (1.0 + time) & 360) / 360;
+			// h = time * 0.1 % 360;
+			// material.color.setHSL(h, 0.5, 0.5);
+		}
+
+
+		window.addEventListener('resize', onResize, false);
+		function onResize() {
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+			renderer.setSize(window.innerWidth, window.innerHeight);
+		}
+		window.addEventListener('mousemove', onMouseMove, false);
+		function onMouseMove( event ) {
+			mouse.x = event.clientX - window.innerWidth / 2;
+			mouse.y = event.clientY - window.innerHeight / 2;
+		}
+
+		function initStats() {
+			var statcontroller = new Stats();
+			statcontroller.setMode(0);
+
+			statcontroller.domElement.style.position="absolute";
+			statcontroller.domElement.style.left="0";
+			statcontroller.domElement.style.top="0";
+
+			document.getElementById("Stats-output").appendChild(statcontroller.domElement);
+
+			return statcontroller;
+		}
+		
+		init();
+
+	</script>
+
+</body>
+</html>
