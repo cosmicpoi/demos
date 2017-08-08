@@ -68,7 +68,7 @@ let SceneMaker = (function () {
 		this.parallax = {
 			active:false,
 			positions:{},
-			velocities:{1:0.1, 2:0.15, 3:0.2, 4:0.25, 5:0.3},
+			velocities:{1:0.05, 2:0.1, 3:0.3, 4:0.5, 5:0.7},
 			velocity:10
 		};
 		for(var i=1; i<=5; i++) {
@@ -212,7 +212,7 @@ let SceneMaker = (function () {
         console.log(scene);
         for(let i=0; i<scene.objects.length; i++) {
         	let new_obj = scene.makeObject(scene.objects[i]);
-        	$(".container").append(new_obj);
+        	this.append(new_obj);
         }
         if(scene.parallax.active) {
         	let click = {x:0, y:0, vx:0, vy:0};
@@ -222,7 +222,7 @@ let SceneMaker = (function () {
         		.addClass("layer-container")
         		.attr('id','layer-'+i)
         		.append($('.layer'+i));
-        		$('.container').append(newlayer);
+        		this.append(newlayer);
         	}
 
         	let movecount = 0;
