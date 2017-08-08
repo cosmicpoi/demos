@@ -39,9 +39,9 @@
               
               <!-- {{ mypage.categories }} -->
               {% if ishome == true %}
-                {{ mypage.content }}
+                {{ mypage.content | markdownify }}
               {% else %}
-                {{ content }}
+                {{ content | markdownify }}
               {% endif %}
 
             </div>
