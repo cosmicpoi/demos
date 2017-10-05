@@ -20,6 +20,8 @@ canvas {
 <canvas id="canvas"></canvas>
 
 <script type="text/javascript">
+// this is just stuff to make it work on the alanluo.com homepage
+
 canvas = document.getElementById("canvas");
 ctx = canvas.getContext('2d');
 canv = $("#canvas");
@@ -30,15 +32,36 @@ canv.attr('height',$('body').height());
 ctx.setTransform(1, 0, 0, 1, 0, 0);
 ctx.translate(canvas.width/2, canvas.height/2);
 
+/* so here's the basic structure of the program
+- there's a 'triangles' array which stores all the triangles
+- each frame, each of these triangles is re-rendered with a width, height, and rotation
+- each frame, a new width, height, and rotation is calculated for these triangles
+- the new w/h/r is calculated from derivative functions, which are formulated with respect to lifetime at the initialization of each tri
+- this also means that each tri stores a lifetime variable
+- when that lifetime variable is too large, the tri gets killed off by having its height derivative set to -1
+- with this structure set up, all that's left is to initialize tris on click
+*/
+
+// set up the triangle array
 triangles = [];
 
-mouse = {x:0, y:0};
-$("#canvas").mousemove(function(event) {
+// stores mouse position
+mouse = {x:0, y:0}; 
+// always update the position of the mouse (in canvas coordinates, not global)
+$("#canvas").mousemove(function(event) { 
     mouse.x = event.pageX-$(this).offset().left;
     mouse.y = event.pageY-$(this).offset().top;
 });
+
+/*
+triangles are drawn by side length + altitude + rotation
+they're isoceles triangles, the side length is the non-similar side
+"scale" in the below code just determines how fast these things change, and is an adjustible parameter
+*/
+// the set of all possible rotation derivatives
 drs = [
-(scale) => ((time, click) => {
+(scale) => ((time, click) => { 
+    // the "click" variable makes the triangle expand while the mouse is held down at init
     if(click) return scale*(0.01);
     else return scale*(0.02+0.01*Math.sin(0.1*time));
 }),
@@ -65,7 +88,7 @@ drs = [
     }
 }),
 ];
-
+// the set of all possible altitude derivatives
 das = [
 (scale, scale2) => ((time, click) => {
     if(click) return 2*scale2;
@@ -94,7 +117,7 @@ das = [
     }
 }),
 ];
-
+// the set of all possible side length derivatives
 dss = [
 (scale, scale2) => ((time, click) => {
     if(click) return 1*scale2;
@@ -128,17 +151,25 @@ dss = [
 }),
 ]
 
-randomSign = () => (Math.random()>0.5) ? 1 : -1;
+//just an easy helper function
+randomSign = () => (Math.random()>0.5) ? 1 : -1; 
+
+//define click event for initialization - we want to make one bloom on each click
 $("#canvas").mousedown(function() {
+    //set up a random number of petals from 3 to 12
     var petals = Math.floor(Math.random()*10)+3;
 
+    //set up an initial side length and color
     let side = 30+Math.random()*60;
     let color = hslStr(Math.random()*360, 80, 50, 0.7);
+    //select a random derivative function for the three drawing variables
     let drf = drs[Math.floor(Math.random()*drs.length)](1*(0.5+Math.random())*randomSign());
     let daf = das[Math.floor(Math.random()*das.length)](1*(0.5+Math.random())*randomSign(), 0.5+Math.random());
     let dsf = dss[Math.floor(Math.random()*dss.length)](1*(0.5+Math.random())*randomSign(), 0.5+Math.random());
+    // random (10%) chance to add a pointy one
     if(Math.random()<0.1) {side = 2; dsf = (time, click) => 0; petals = 20+Math.floor(Math.random()*20)}
 
+    //now add the triangles to the array - note that each triangle in each bloom has the same d functions
     for(let i=0; i<petals; i++) {
         let newtri = new Triangle(mouse.x, mouse.y, 0, side, color, (i/petals)*2*Math.PI);
         newtri.dr= drf;
@@ -155,6 +186,7 @@ function reDraw() {
 }
 window.requestAnimationFrame(reDraw);
 
+// a slightly naive way of handling mouseup events
 $("#canvas").mouseup(function() {
     for(var i=0; i<triangles.length; i++) {
         triangles[i].clicking = false;
@@ -195,8 +227,6 @@ drawTri = function(tri) {
     ctx.lineTo(-tri.sidelength/2, tri.altitude);
     ctx.lineTo(0, 0);
     ctx.fill();
-    // ctx.strokeStyle="white";
-    // ctx.stroke();
     ctx.restore();
 }
 
@@ -232,27 +262,28 @@ canvasDraw = function() {
 }
 
 
-//init stuff
+//init stuff - this only runs once (so that the canvas isn't boring on load)
+//it just makes a bunch of flowers that immediately disappear
 
-    function makeDyingBloom(x, y) {
-        let side = 30+Math.random()*60;
-        let drf = drs[0](1);
-        let daf = (side, click) => (-2);
-        let dsf = (side, click) => (-2);
+function makeDyingBloom(x, y) {
+    let side = 30+Math.random()*60;
+    let drf = drs[0](1);
+    let daf = (side, click) => (-2);
+    let dsf = (side, click) => (-2);
 
-        let color = hslStr(Math.random()*360, 80, 50, 0.7);
-        for(let i=0; i<10; i++) {
-            let newtri = new Triangle(x, y, 150, 150, color, (i/10)*2*Math.PI);
-            newtri.dr= drf;
-            newtri.da= daf;
-            newtri.ds= dsf;
-            newtri.maxLife = 30;
-            triangles.push(newtri);
-        }
+    let color = hslStr(Math.random()*360, 80, 50, 0.7);
+    for(let i=0; i<10; i++) {
+        let newtri = new Triangle(x, y, 150, 150, color, (i/10)*2*Math.PI);
+        newtri.dr= drf;
+        newtri.da= daf;
+        newtri.ds= dsf;
+        newtri.maxLife = 30;
+        triangles.push(newtri);
     }
-    for(var i=0; i<10; i++) {
-        makeDyingBloom(Math.random()*canvas.width,Math.random()*canvas.height);    
-    }
+}
+for(var i=0; i<10; i++) {
+    makeDyingBloom(Math.random()*canvas.width,Math.random()*canvas.height);    
+}
 
 </script>
 </body>
