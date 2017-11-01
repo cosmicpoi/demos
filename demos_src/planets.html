@@ -1,0 +1,194 @@
+<html>
+<head>
+	<title>Hello world</title>
+	<script type="text/javascript" src="./js/three.js"></script>
+	<script type="text/javascript" src="./js/dat.gui.js"></script>
+	<script type="text/javascript" src="./js/TrackballControls.js"></script>
+	<style type="text/css">
+	body {
+		margin: 0;
+		padding: 0;
+		overflow:hidden;
+	}
+	div#WebGL-output {
+		position:absolute;
+		width:100%;
+		height:100%;
+	}
+	div#controls {
+		position:absolute;
+		width:100%;
+		min-height:100px;
+		background:white;
+	}
+	</style>
+</head>
+<body>
+	<!--<div id="controls"></div>-->
+	<div id="WebGL-output"></div>
+
+	<script type="text/javascript">
+		function randomColor() {
+			return Math.floor(Math.random()*16777215);
+		}
+
+
+		var clock, scene, camera, renderer, controls;
+		var star, planetdata;
+		planetdata = [];
+		var planets = [];
+		function addPlanet(r, d, v) {
+			var thisdata = {
+				radius:r, 
+				distance:d,
+				velocity:v, 
+				initvelocity:v,
+				theta:0
+			};
+			planetdata.push(thisdata);
+
+			var planetGeometry = new THREE.SphereGeometry(thisdata.radius, 10, 10);
+			var planetMaterial = new THREE.MeshLambertMaterial({color:randomColor()});
+			var thisplanet = new THREE.Mesh(planetGeometry, planetMaterial);
+
+			thisplanet.position.set(d, 0, 0);
+
+			scene.add(thisplanet);
+			planets.push(thisplanet);
+
+			var material = new THREE.LineBasicMaterial({ color: 0xffffff });
+			var geometry = new THREE.Geometry();
+			var lim = 20;
+			for(var i=0; i<=lim; i++) {
+				var step = Math.PI*2/lim;
+				geometry.vertices.push(new THREE.Vector3(
+					d*Math.cos(i*step), 
+					d*Math.sin(i*step), 0));	
+			}
+
+		    var path = new THREE.Line(geometry, material);
+		    scene.add(path);
+		}
+
+		function init() {
+			// set some stuff up
+			clock = new THREE.Clock();
+			clock.start();
+
+			scene = new THREE.Scene();
+			camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 1, 1000);
+
+			cameracontrols = new THREE.TrackballControls(camera);
+
+			cameracontrols.rotateSpeed = 1.0;
+			cameracontrols.zoomSpeed = 1.2;
+			cameracontrols.panSpeed = 0.8;
+
+			cameracontrols.noZoom = false;
+			cameracontrols.noPan = false;
+
+			cameracontrols.staticMoving = true;
+			cameracontrols.dynamicDampingFactor = 0.3;
+
+			cameracontrols.keys = [ 65, 83, 68 ];
+
+			cameracontrols.addEventListener( 'change', renderScene);
+
+
+
+			renderer = new THREE.WebGLRenderer();
+			renderer.setClearColor(0x111111);
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			renderer.shadowMapEnabled = true;
+
+			// plane.rotation.x = -0.5*Math.PI;
+			// plane.position.set(15, 0, 0);
+			// scene.add(plane);
+
+			//add the star
+			var starGeometry = new THREE.SphereGeometry(1, 10, 10); 
+			//lambert
+			var starMaterial = new THREE.MeshLambertMaterial({color:0xffee00});
+			star = new THREE.Mesh(starGeometry, starMaterial);
+			star.position.set(0, 0, 0);
+			star.castShadow = true;
+
+			scene.add(star);
+
+			//set up lights and camera
+			camera.position.set(0, 0, 30);
+			camera.lookAt(scene.position);
+
+			var spotLight = new THREE.SpotLight(0xffffff);
+			spotLight.position.set(0, 0, 40);
+			scene.add(spotLight);
+			spotLight.castShadow = true; 
+
+			light = new THREE.DirectionalLight( 0xffffff );
+			light.position.set( 1, 1, 1 );
+			scene.add(light);
+
+			light = new THREE.DirectionalLight( 0x002288 );
+			light.position.set( -1, -1, -1 );
+			scene.add(light);
+
+			light = new THREE.AmbientLight( 0x222222 );
+			scene.add(light);
+
+
+			//finish
+			document.getElementById("WebGL-output").appendChild(renderer.domElement);
+			renderer.render(scene, camera);
+			renderScene();
+
+			var lim=4;
+			for(var i=1; i<=lim; i++) {
+				addPlanet(Math.random()*guicontrols.planetSize+0.1, (10/lim)*i, (Math.random()*guicontrols.planetSpeed+0.005)*(Math.floor(Math.random()*2)*2-1));
+			}
+		}
+
+		function renderScene() {
+			renderer.render(scene, camera);
+			// console.log(clock.getElapsedTime());
+			// plane.rotation.x=clock.getElapsedTime();
+
+			for(var i=0; i<planetdata.length; i++) {
+				planetdata[i].theta+=planetdata[i].velocity;
+				planetx = planetdata[i].distance * Math.cos(planetdata[i].theta);
+				planety = planetdata[i].distance * Math.sin(planetdata[i].theta);
+
+				planets[i].position.set(planetx, planety, 0);
+				planets[i].scale.set(guicontrols.planetSize*2, guicontrols.planetSize*2, guicontrols.planetSize*2);
+				planetdata[i].velocity=planetdata[i].initvelocity*(guicontrols.planetSpeed/0.01);
+			}
+
+
+		}
+
+		// gui stuff
+		var guicontrols = new function() {
+			this.planetSpeed=0.01;
+			this.planetSize=0.5;
+		}
+
+		var gui = new dat.GUI();
+		gui.add(guicontrols, 'planetSize', 0, 1);
+		gui.add(guicontrols, 'planetSpeed', 0.001, 0.02);
+
+		function animate() {
+
+			requestAnimationFrame( animate );
+			renderScene();
+			cameracontrols.update();
+
+		}
+
+
+		init();
+		animate();
+
+
+	</script>
+
+</body>
+</html>

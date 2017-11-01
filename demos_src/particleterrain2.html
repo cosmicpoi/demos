@@ -114,7 +114,13 @@
 				currentpos = particles.geometry.vertices[i];
 				// particles.geometry.vertices[i].y=80*Math.sin(currentpos.x*0.008+0.5*time)+
 												// 80*Math.sin(currentpos.z*0.008+0.8*time);
-				var particleheight = (noisefn(currentpos.x/300, currentpos.z/300, time*0.2)+1)*70;
+
+/////////////////////////////////
+				var particleheight = 
+				(noisefn(currentpos.x/300, currentpos.z/300, time*0.2)+1)*70;
+
+/////////////////////////////////
+
 				particles.geometry.vertices[i].y=particleheight;
 				particles.geometry.colors[i].setHSL(particles.geometry.vertices[i].y/160, 0.7, 0.4);
 			}

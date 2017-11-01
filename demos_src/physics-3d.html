@@ -1,0 +1,243 @@
+<html>
+<head>
+	<title>Hello world</title>
+	<script type="text/javascript" src="./js/three.js"></script>
+	<script type="text/javascript" src="./js/dat.gui.js"></script>
+	<script type="text/javascript" src="./js/TrackballControls.js"></script>
+	<style type="text/css">
+	body {
+		margin: 0;
+		padding: 0;
+		overflow:hidden;
+	}
+	div#WebGL-output {
+		position:absolute;
+		width:100%;
+		height:100%;
+	}
+	</style>
+</head>
+<body>
+	<div id="WebGL-output"></div>
+
+	<script type="text/javascript">
+		function randomColor() {
+			return Math.floor(Math.random()*16777215);
+		}
+
+
+		var clock, scene, camera, renderer, controls;
+		var balls = [];
+		var balldata = [];
+		var dimension = 80;
+		var fieldsources = [];
+		var fielddata = [];
+
+		function addField(fx, fy, fz, vectorfield) {
+			var fieldGeometry = new THREE.SphereGeometry(1, 5, 5); 
+			var fieldMaterial = new THREE.MeshBasicMaterial({color:0xff0000});
+			var field = new THREE.Mesh(fieldGeometry, fieldMaterial);
+			field.position.set(fx, fy, fz);
+			fieldsources.push(field);
+			scene.add(fieldsources[fieldsources.length-1]);
+
+			var thisdata = {
+				x: fx,
+				y: fy,
+				z: fz,
+				evaluate: vectorfield
+			}
+
+			fielddata.push(thisdata);
+
+		}
+
+		function forceAtPoint(fx, fy, fz) {
+			var sumx = 0;
+			var sumy = 0;
+			var sumz = 0;
+			for(var i=0; i<fielddata.length; i++) {
+				var vector = fielddata[i].evaluate(fx, fy, fz);
+				sumx+=vector.x;
+				sumy+=vector.y;
+				sumz+=vector.z;
+			}
+
+			return {x:sumx, y:sumy, z:sumz};
+		}
+
+		function addBall(bx, by, bz) {
+			var ballGeometry = new THREE.SphereGeometry(1, 5, 5); 
+			// var ballMaterial = new THREE.MeshLambertMaterial({color:0xffee00});
+			var ballMaterial = new THREE.MeshLambertMaterial({color:randomColor()});
+			var ball = new THREE.Mesh(ballGeometry, ballMaterial);
+			ball.position.set(bx, by, bz);
+
+			var thisballdata = {
+				x: bx,
+				y: by,
+				z: bz,
+				vx: 0,
+				vy: 0,
+				vz: 0,
+				ax: 0,
+				ay: 0,
+				az: 0
+			};
+
+			balls.push(ball);
+			balldata.push(thisballdata);
+			scene.add(balls[balls.length-1]);
+		}
+
+		function init() {
+			// set some stuff up
+			clock = new THREE.Clock();
+			clock.start();
+
+			scene = new THREE.Scene();
+			camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 1, 1000);
+
+			cameracontrols = new THREE.TrackballControls(camera);
+			cameracontrols.rotateSpeed = 1.0;
+			cameracontrols.zoomSpeed = 1.2;
+			cameracontrols.panSpeed = 0.8;
+			cameracontrols.noZoom = false;
+			cameracontrols.noPan = false;
+			cameracontrols.staticMoving = true;
+			cameracontrols.dynamicDampingFactor = 0.3;
+			cameracontrols.keys = [ 65, 83, 68 ];
+			cameracontrols.addEventListener( 'change', renderScene);
+
+			renderer = new THREE.WebGLRenderer();
+			renderer.setClearColor(0x111111);
+			renderer.setSize(window.innerWidth, window.innerHeight);
+
+			var axes = new THREE.AxisHelper(20);
+			scene.add(axes);
+
+			var planeGeometry = new THREE.PlaneGeometry(dimension, dimension, 1, 1);
+			var planeMaterial = new THREE.MeshLambertMaterial({color:0xe3e3e3});
+			plane = new THREE.Mesh(planeGeometry, planeMaterial);
+
+			plane.position.set(0, -dimension/2, 0);
+			plane.rotation.x = -0.5*Math.PI;
+			scene.add(plane);
+
+
+			//set up lights and camera
+			camera.position.set(1.5*dimension, dimension/2, 1.5*dimension);
+			camera.lookAt(dimension/2, dimension/2, dimension/2);
+
+			var spotLight = new THREE.SpotLight(0xffffff);
+			spotLight.position.set(0, 0, 40);
+			scene.add(spotLight);
+
+			light = new THREE.DirectionalLight( 0xffffff );
+			light.position.set( 1, 1, 1 );
+			scene.add(light);
+
+			light = new THREE.DirectionalLight( 0x002288 );
+			light.position.set( -1, -1, -1 );
+			scene.add(light);
+
+			light = new THREE.AmbientLight( 0x222222 );
+			scene.add(light);
+
+			// add balls
+			ballsper = 10;
+			var increment = dimension/(ballsper+1);
+			for(var i=1; i<=ballsper; i++) {
+				for(var j=1; j<=ballsper; j++) {
+					for(var k=1; k<=ballsper; k++) {
+						addBall(i*increment-0.5*dimension, j*increment-0.5*dimension, k*increment-0.5*dimension);
+					}
+				}
+			}
+
+			// addField(0, 0, 0, function(fx, fy, fz) {
+			// 	norm = Math.pow(Math.sqrt(fx*fx+fy*fy+fz*fz+0.5), 3)*100;
+			// 	return {x:-fx/norm, y:-fy/norm, z:-fz/norm};
+			// });
+
+			// addField(0, 0, 0, function(fx, fy, fz) {
+			// 	norm = Math.pow(Math.sqrt(fx*fx+fy*fy+fz*fz+0.001), 2)*150;
+			// 	return {x:-fy/norm, y:fx/norm, z:fz/norm};
+			// });
+
+			addField(0, 0, 0, function(fx, fy, fz) {
+				norm = Math.pow(Math.sqrt(fx*fx+fy*fy+fz*fz+0.001), 2)*750;
+				return {x:fz/norm, y:fx/norm, z:fy/norm};
+			});
+
+		
+
+
+
+
+			//finish
+			document.getElementById("WebGL-output").appendChild(renderer.domElement);
+			renderer.render(scene, camera);
+			renderScene();
+
+		}
+
+		function renderScene() {
+			renderer.render(scene, camera);
+
+			// do math
+			for(var i=0; i<balldata.length; i++) {
+				if(balldata[i].x>dimension/2 || balldata[i].x<-dimension/2) {
+					balldata[i].vx*=-1;
+				}
+				if(balldata[i].y>dimension/2 || balldata[i].y<-dimension/2) {
+					balldata[i].vy*=-1;
+				}
+				if(balldata[i].z>dimension/2 || balldata[i].z<-dimension/2) {
+					balldata[i].vz*=-1;
+				}
+
+				balldata[i].x+=balldata[i].vx; 
+				balldata[i].y+=balldata[i].vy; 
+				balldata[i].z+=balldata[i].vz;
+
+				balldata[i].vx+=balldata[i].ax;
+				balldata[i].vy+=balldata[i].ay;
+				balldata[i].vz+=balldata[i].az;
+
+				var vector = forceAtPoint(balldata[i].x, balldata[i].y, balldata[i].z);
+				balldata[i].ax+=vector.x;
+				balldata[i].ay+=vector.y;
+				balldata[i].az+=vector.z;
+			}
+
+			for(var i=0; i<balls.length; i++) {
+				balls[i].position.set(balldata[i].x, balldata[i].y, balldata[i].z);
+			}
+		}
+
+		// gui stuff
+		// var guicontrols = new function() {
+		// 	this.planetSpeed=0.01;
+		// 	this.planetSize=0.5;
+		// }
+
+		// var gui = new dat.GUI();
+		// gui.add(guicontrols, 'planetSize', 0, 1);
+		// gui.add(guicontrols, 'planetSpeed', 0.001, 0.02);
+
+		function animate() {
+			requestAnimationFrame( animate );
+			renderScene();
+			cameracontrols.update();
+		}
+
+
+		init();
+		animate();
+
+
+	</script>
+
+</body>
+</html>
