@@ -2,18 +2,17 @@
 <head>
 	<title></title>
 	<style type="text/css">
-* {
-  margin:0;
-  padding:0;
-}
-canvas {
-  margin:0;
-  padding:0;
-  width:100%;
-  height:100%;
-}
+  * {
+    margin:0;
+    padding:0;
+  }
+  canvas {
+    margin:0;
+    padding:0;
+    width:100%;
+    height:100%;
+  }
 	</style>
-
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 </head>
 <body>
@@ -21,45 +20,49 @@ canvas {
 
 <script type="text/javascript">
 
-const VEC_ZERO = {x:0, y:0};
+const VEC_ZERO = {x:0, y:0}; // additive identity vector
 
-let canvas = document.getElementById("canvas");
+// set up basic canvas stuff
+let canvas = document.getElementById("canvas"); 
 let ctx = canvas.getContext('2d');
 let canv = $("canvas");
 
 canv.attr('width',$('body').width());
 canv.attr('height',$('body').height());
 
-let dist_between = 50;
+let dist_between = 50; // dist b/t each vertex
 
+// calculate maximum # of vertices across and down
 let max_across = Math.floor(canvas.width/dist_between)-4;
 let max_down = Math.floor(canvas.height/dist_between)-5;
 
+// margins b/t fabric and sides of document
 let offset_x = (canvas.width-dist_between*(max_across-1))/2;
 let offset_y = dist_between;
 
-let points = [];
+let points = []; // contains all the vertices
 
-// ctx.fillStyle="black";
-for(let i=0; i<max_across; i++) {
+// add all the vertices to the points array
+for(let i=0; i<max_across; i++) { // iterate across and down
   for(let j=0; j<max_down; j++) {
     points.push({
-      x:offset_x+i*dist_between,
+      x:offset_x+i*dist_between, // position
       y:offset_y+j*dist_between,
-      vx: 0,
+      vx: 0, // velocity
       vy: 0,
-      ax: 0,
+      ax: 0, // acceleration
       ay: 0,
-      static: j==0,
-      forces: [],
-      getForce: function() {
+      static: j==0, // if it's the top row, it can't move
+      forces: [], // list of forces
+      getForce: function() { // accumulator function for the forces
         return this.forces.reduce((acc, curr) => ({x:acc.x+curr.x, y:acc.y+curr.y}),{x:0, y:0});
       },
-      clicking:false
+      clicking:false // is it being held down by the mouse?
     });
   }
 }
 
+// helper functions for drawing things
 function drawCircle(x, y, r) {
   ctx.beginPath();
   ctx.arc(x, y, r, 0, 2*Math.PI);
@@ -71,28 +74,28 @@ function drawLine(start, end) {
   ctx.lineTo(end.x, end.y);
   ctx.stroke();
 };
+// helper functions for vector math
 const dist = (point1,point2) => Math.pow(Math.pow(point1.x-point2.x,2)+Math.pow(point1.y-point2.y,2), 0.5);
 const normVec = (vec) => {let mag = dist(vec, VEC_ZERO); return {x:vec.x/mag, y:vec.y/mag}};
 const scale = (vec, scalar) => ({x: vec.x*scalar, y:vec.y*scalar});
 const add = (vec1, vec2) => ({x:vec1.x+vec2.x, y:vec1.y+vec2.y});
 
-function Constraint(point1, point2) {
-  this.start = point1; //references
+// spring / constraint prototype
+function Constraint(point1, point2) { // make the point between two points
+  this.start = point1; // carries references to points that exist in the points array
   this.end = point2;
   this.length = dist(point1,point2);
   this.k = 0.02;
-  // console.log("length is ")+this.length;
-  this.applyForce = function() { //Hooke's law???
+
+  this.applyForce = function() { //Hooke's law
     let delx = dist(this.start,this.end)-this.length; //negative if it's compressed
-    // console.log("length is "+this.length);
-    // console.log("delx is "+delx);
+
     const mypoints = [this.start, this.end];
     for(let i=0; i<mypoints.length; i++) {
-      const thispoint = mypoints[i]; const otherpoint = mypoints[(i+1)%2];
+      const thispoint = mypoints[i];
+      const otherpoint = mypoints[(i+1)%2];
       let normalized =  normVec({x:otherpoint.x-thispoint.x, y:otherpoint.y-thispoint.y});
-      // console.log(normalized);
       let force = scale(normalized,this.k*delx);
-      // console.log("force is "+force);
 
       thispoint.forces.push(force);
     }
@@ -101,10 +104,12 @@ function Constraint(point1, point2) {
   }
 }
 
-let constraints = [];
+let constraints = []; // array of all springs
 
-// constraints.push(new Constraint(points[1],points[2]));
+// constraints.push(new Constraint(points[1],points[2])); // for debugging
 
+
+// make constraints across, down, and diagonally
 for(var i=0; i<max_across; i++) {
   for(var j=0; j<max_down-1; j++) {
     constraints.push(new Constraint(points[i*max_down+j],points[i*max_down+j+1]));    
@@ -121,9 +126,10 @@ for(var i=0; i<max_across-1; i++) {
   }
 }
 
-
+// position of the mouse
 let click = {x: 0, y:0, vx:0, vy:0};
 
+// update position of mouse on mousemove
 $(canvas).mousemove(function(e) {
   let newx = e.pageX - $(canvas).offset().left;
   let newy = e.pageY - $(canvas).offset().top;
@@ -131,19 +137,19 @@ $(canvas).mousemove(function(e) {
   click.vy = newy-click.y;
   click.x = newx;
   click.y = newy;
-}).mousedown(function() {
+}).mousedown(function() { // grab all points in a 100 px radius on mousedown
   for(let i=0; i<points.length; i++) {
     if(dist(click, points[i]) < 100) {
       points[i].clicking = true;
     }
   }
-}).mouseup(function() {
+}).mouseup(function() { // release all points on mouseup
   for(let i=0; i<points.length; i++) {
     points[i].clicking = false;
   }
 });
 
-function reDraw() {
+function reDraw() { // animation step
   //reset 
   canv.attr('width',$('body').width());
   canv.attr('height',$('body').height());
@@ -167,7 +173,7 @@ function reDraw() {
       if(points[i].clicking) {
         points[i].x += click.vx;
         points[i].y += click.vy;
-        points[i].vx = 0; ///comment these 4 line out to make the points snap back
+        points[i].vx = 0; // comment these 4 line out to make the points snap back
         points[i].vy = 0;
         points[i].ax = 0;
         points[i].ay = 0;
