@@ -179,7 +179,7 @@ function reDraw() { // animation step
         points[i].ay = 0;
       } else {
         points[i].vx+=points[i].ax;
-        points[i].vy+=points[i].ay; //gravity-independent
+        points[i].vy+=points[i].ay;
 
         points[i].forces.push({x:0, y:0.2}); //apply gravity
         let netForce = points[i].getForce();
@@ -190,21 +190,15 @@ function reDraw() { // animation step
 
         points[i].ax -= 0.4 * points[i].vx;
         points[i].ay -= 0.4 * points[i].vy;
-        
       }
-
     }
 
     ctx.fillStyle="white";  
     drawCircle(points[i].x,points[i].y,5);
   }
-  
-  
   window.requestAnimationFrame(reDraw);
 }
 window.requestAnimationFrame(reDraw);
-
-
 
 </script>
 </body>
