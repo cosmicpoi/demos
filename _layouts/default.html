@@ -2,6 +2,17 @@
 <html lang="en">
   <head>
     {% include head.html %}
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    {% if site.environment == "build" %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-102679658-4"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'UA-102679658-4');
+    </script>
+    {% endif %}
   </head>
 
   <body>
