@@ -2,18 +2,17 @@
 <head>
 	<title></title>
 	<style type="text/css">
-* {
-  margin:0;
-  padding:0;
-}
-canvas {
-  margin:0;
-  padding:0;
-  width:100%;
-  height:100%;
-}
+    * {
+      margin:0;
+      padding:0;
+    }
+    canvas {
+      margin:0;
+      padding:0;
+      width:100%;
+      height:100%;
+    }
 	</style>
-
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 </head>
 <body>
@@ -21,7 +20,6 @@ canvas {
 
 <script type="text/javascript">
 // this is just stuff to make it work on the alanluo.com homepage
-
 canvas = document.getElementById("canvas");
 ctx = canvas.getContext('2d');
 canv = $("#canvas");
@@ -167,7 +165,10 @@ $("#canvas").mousedown(function() {
     let daf = das[Math.floor(Math.random()*das.length)](1*(0.5+Math.random())*randomSign(), 0.5+Math.random());
     let dsf = dss[Math.floor(Math.random()*dss.length)](1*(0.5+Math.random())*randomSign(), 0.5+Math.random());
     // random (10%) chance to add a pointy one
-    if(Math.random()<0.1) {side = 2; dsf = (time, click) => 0; petals = 20+Math.floor(Math.random()*20)}
+    if(Math.random()<0.1) { 
+        side = 2;
+        dsf = (time, click) => 0; petals = 20+Math.floor(Math.random()*20)
+    }
 
     //now add the triangles to the array - note that each triangle in each bloom has the same d functions
     for(let i=0; i<petals; i++) {
@@ -178,6 +179,10 @@ $("#canvas").mousedown(function() {
         newtri.maxLife = 600;
         triangles.push(newtri);
     }
+}).mouseup(function() { // slightly naive way to handle mouseup events
+    for(var i=0; i<triangles.length; i++) {
+        triangles[i].clicking = false;
+    }
 });
 
 function reDraw() {
@@ -186,12 +191,6 @@ function reDraw() {
 }
 window.requestAnimationFrame(reDraw);
 
-// a slightly naive way of handling mouseup events
-$("#canvas").mouseup(function() {
-    for(var i=0; i<triangles.length; i++) {
-        triangles[i].clicking = false;
-    }
-});
 
 Triangle = function(x, y, altitude, sidelength, color, rotation) {
     this.x = x; this.y = y;
@@ -210,11 +209,9 @@ Triangle = function(x, y, altitude, sidelength, color, rotation) {
         this.ds = (a, b) => (-1);
     }
 }
-
 hslStr = function(h, s, l, a) {
     return "hsla("+h+","+s+"%,"+l+"%,"+a+")";
 }
-
 drawTri = function(tri) {
     ctx.fillStyle = tri.color;
 
@@ -229,9 +226,7 @@ drawTri = function(tri) {
     ctx.fill();
     ctx.restore();
 }
-
 canvasDraw = function() {
-
     canv.attr('width',$('#canvas').width());
     canv.attr('height',$('#canvas').height());
 
@@ -256,15 +251,11 @@ canvasDraw = function() {
             triangles.splice(i, 1);
         }
     }
-
-  
-
 }
 
 
 //init stuff - this only runs once (so that the canvas isn't boring on load)
 //it just makes a bunch of flowers that immediately disappear
-
 function makeDyingBloom(x, y) {
     let side = 30+Math.random()*60;
     let drf = drs[0](1);

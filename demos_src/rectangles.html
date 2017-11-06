@@ -2,25 +2,24 @@
 <head>
 	<title></title>
 	<style type="text/css">
-* {
-  margin:0;
-  padding:0;
-}
-canvas {
-  margin:0;
-  padding:0;
-  width:100%;
-  height:100%;
-}
+  * {
+    margin:0;
+    padding:0;
+  }
+  canvas {
+    margin:0;
+    padding:0;
+    width:100%;
+    height:100%;
+  }
 	</style>
-
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 </head>
 <body>
 <canvas id="canvas"></canvas>
 
 <script type="text/javascript">
-
+/* stuff to make this work on the alanluo.com homepage */
 let canvas = document.getElementById("canvas");
 let ctx = canvas.getContext('2d');
 let canv = $("canvas");
@@ -29,10 +28,14 @@ const getTime = () => (Date.now()-starttime);
 canv.attr('width',$('body').width());
 canv.attr('height',$('body').height());
 ctx.translate(canvas.width/2, canvas.height/2);
+
+// has it started yet? this is just so that it doesn't init w/ mouse at (0, 0)
 let started = false;
 
 let rects = [];
 let rain = [];
+
+// handle basic mouse events
 var mouse = {x:0, y:0};
 $("#canvas").mousemove(function(event) {
   started = true;
@@ -40,22 +43,23 @@ $("#canvas").mousemove(function(event) {
     mouse.y = event.pageY-$(this).offset().top;
 
     makeRect(mouse.x, mouse.y, rects);
-});
-$("#canvas").click(function() {
+}).click(function() {
   // direction*=-1;
-  rain.push({o: {x:mouse.x, y:mouse.y}, rects: rects.slice(),
-      direction:Math.floor(Math.random()*4)});
+  rain.push({
+    o: {x:mouse.x, y:mouse.y},
+    rects: rects.slice(),
+    direction:Math.floor(Math.random()*4)
+  });
 
   for(let i=0; i<rain.length ;i++) {
     rain[i].direction=(rain[i].direction+1) % 4;
   }
-  if(rain.length>6) rain.splice(0, 1);
+  if(rain.length>6) { rain.splice(0, 1); }
 });
 
 makeRect = function(x, y, rectarr, isRandom) {
-  // console.log("hello");
   var myColor =hslStr((0.1*getTime()) % 360, 100, 80, 0.5);
-  if(isRandom) {myColor = hslStr(Math.random()* 360, 100, 80, 0.5);}
+  if(isRandom) { myColor = hslStr(Math.random()* 360, 100, 80, 0.5); }
   var myRotation = (getTime()*0.002) % (2*Math.PI);
 
   rectarr.push(new Rectangle(x, y, 80, 30, myColor, myRotation));
@@ -63,8 +67,6 @@ makeRect = function(x, y, rectarr, isRandom) {
     rectarr.splice(0, 1);
   }
 }
-
-
 function Rectangle(x, y, width, height, color, rotation) {
   this.x = x; this.y = y;
   this.width = width; this.height = height; 
@@ -72,14 +74,11 @@ function Rectangle(x, y, width, height, color, rotation) {
   this.lifetime = 100;
   this.vx = 0; this.vy = 0; this.ax = 0; this.ay = 0;
 }
-
 function hslStr(h, s, l, a) {
     return "hsla("+h+","+s+"%,"+l+"%,"+a+")";
 }
-
 function drawRect(rect) {
   ctx.fillStyle = rect.color;
-  
   ctx.save();
   ctx.translate(rect.x, rect.y);
   ctx.rotate(rect.rotation);
@@ -102,13 +101,11 @@ function reDraw() {
   ctx.fillStyle = "#222244";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
  
-  if(framecount % 2 == 0 && started) makeRect(mouse.x, mouse.y, rects);
+  if(framecount % 2 == 0 && started) { makeRect(mouse.x, mouse.y, rects); }
 
   for(let i=0; i<rain.length; i++) {
     makeRect(rain[i].o.x, rain[i].o.y, rain[i].rects)
   }
-
-
 
   for(let i=0; i<rects.length; i++) {
     drawRect(rects[i]);
@@ -140,15 +137,11 @@ function reDraw() {
       rects[i].ax=4*f1.x+1*f2.x;
       rects[i].ay=4*f1.y+1*f2.y;
     }
-    // let normx = rects[i].height/norm;
-    // let normy = -rects[i].width/norm;
-
 
     rects[i].lifetime--;
     if(rects[i].lifetime==0) {
       rects.splice(i, 1);
     }
-
   }
 
   for(let i=0; i<rain.length; i++) {
@@ -159,18 +152,16 @@ function reDraw() {
     currArr[j].x+=currArr[j].vx; currArr[j].y+=currArr[j].vy;
       currArr[j].vx+=currArr[j].ax; currArr[j].vy+=currArr[j].ay;
 
-      if(rain[i].direction == 0)     {currArr[j].ay=Math.random();  currArr[j].ax= 0;}
-      else if(rain[i].direction == 1){currArr[j].ay=0; currArr[j].ax=-Math.random();}
-      else if(rain[i].direction == 2){currArr[j].ay=-Math.random(); currArr[j].ax=0;}
-      else {currArr[j].ay=0; currArr[j].ax= Math.random();};
-    
+      if(rain[i].direction == 0)     { currArr[j].ay= Math.random(); currArr[j].ax=0; }
+      else if(rain[i].direction == 2){ currArr[j].ay=-Math.random(); currArr[j].ax=0; }
+      else if(rain[i].direction == 1){ currArr[j].ay=0; currArr[j].ax=-Math.random(); }
+      else { currArr[j].ay=0; currArr[j].ax = Math.random(); }
     }
   }
   
   window.requestAnimationFrame(reDraw);
 }
 window.requestAnimationFrame(reDraw);
-
 
 for(let i=0; i<100; i++) {
   makeRect(Math.random()*canvas.width, Math.random()*canvas.height, rects, true);
